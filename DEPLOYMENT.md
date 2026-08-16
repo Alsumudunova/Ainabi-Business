@@ -1,125 +1,140 @@
-# Деплой гид — GitHub → Vercel (+ Railway/Render)
+# Деплой гид
 
-## Маанилүү: Vercel — frontend үчүн, backend үчүн эмес
-
-Vercel статикалык сайттар жана serverless функциялар үчүн эң мыкты. Бирок бул
-жердеги backend (Express + Prisma + PostgreSQL + httpOnly cookie) — узак
-иштеген, туруктуу коннекциялары бар классикалык сервер. Аны Vercel'дин
-serverless моделине киргизүү мүмкүн, бирок татаалдашат (ар бир сурамда жаңы
-Prisma коннекциясы база лимитин тез түгөтөт).
-
-**Сунушталган схема:**
-- **Frontend (React/Vite)** → **Vercel**
-- **Backend (Express API) + PostgreSQL** → **Railway** же **Render**
-
-Экөө тең акысыз tier'ден баштайт, орнотуу 15-20 мүнөт алат.
+Эки жол бар. Vercel'дин **Multi-Service** функциясы (frontend + backend бир
+эле Vercel долбоорунда, бир доменде) азыр туура иштеп тургандыктан, ошол
+**Вариант A негизги жол**. Vercel'ди frontend'ге, ал эми backend'ди Railway'ге
+бөлүп жайгаштыргыңыз келсе — **Вариант B**.
 
 ---
 
-## 1. GitHub'го чыгаруу
+## Вариант A — баары бир Vercel долбоорунда (сунушталат)
 
-```bash
-cd /Users/alsu/Desktop/ainabi-bussines
-git init
-git add .
-git commit -m "Initial commit — Ainabi Business"
-git branch -M main
-git remote add origin https://github.com/<сиздин-username>/ainabi-business.git
-git push -u origin main
-```
+Vercel GitHub репозиторийиңизди import кылганда `frontend/` жана `backend/`
+экөөнү тең өзү таап, "Multi-Service" катары сунуштайт. Репонун түбүндөгү
+[`vercel.json`](vercel.json) файлы даяр — ал:
 
-`.gitignore` файлдар (root, `backend/`, `frontend/`) `.env` файлдарды жана
-`node_modules`'ду автоматтык түрдө сыртта калтырат — сырларыңыз GitHub'го
-эч качан жиберилбейт. Push кылардан мурун текшериңиз:
+- `/api/*` сурамдарын `backend` сервисине,
+- калган баарын `frontend` сервисине багыттайт,
 
-```bash
-git status   # .env файлдар тизмеде жок болушу керек
-```
+экөө тең **бир домендин астында** иштейт (мис. `ainabi.vercel.app`).
+Ушундан улам frontend/backend "cross-site" эмес, **бир origin** болуп
+эсептелет — cookie маселелери жоголот, конфигурация жөнөйт.
+
+### Кадамдар
+
+1. **GitHub'го чыгаруу** (эгер чыгара элек болсоңуз):
+
+   ```bash
+   cd /Users/alsu/Desktop/ainabi-bussines
+   git init
+   git add .
+   git commit -m "Initial commit — Ainabi Business"
+   git branch -M main
+   git remote add origin https://github.com/<username>/ainabi-business.git
+   git push -u origin main
+   ```
+
+   Push кылардан мурун: `git status` — `.env` файлдар тизмеде болбошу керек.
+
+2. **PostgreSQL база табуу** — Vercel өзү Postgres бербейт. Эң жеңили:
+   [Neon](https://neon.tech) (акысыз tier, serverless Postgres, Vercel менен
+   тыгыз иштейт) же [Supabase](https://supabase.com). Аккаунт ачып, жаңы
+   база түзүп, **connection string**ти (`DATABASE_URL`) көчүрүп алыңыз.
+
+3. **Vercel'де import экраныңызда** (скриншотто көрсөткөн бет):
+   - **Root Directory**: `./` бойдон калтырыңыз (өзгөртпөңүз! — экөө тең
+     `vercel.json` аркылуу табылат).
+   - `vercel.json` мурунтан репого кошулду, андыктан "Refresh" басуунун
+     кереги жок — Vercel аны GitHub'дон өзү окуйт.
+   - **Environment Variables** бөлүмүн ачып, төмөнкүлөрдү кошуңуз:
+
+     | Айнымалы | Маани | Эскертүү |
+     |---|---|---|
+     | `NODE_ENV` | `production` | |
+     | `DATABASE_URL` | Neon/Supabase'ден алган connection string | |
+     | `JWT_ACCESS_SECRET` | `openssl rand -base64 48` | |
+     | `JWT_REFRESH_SECRET` | `openssl rand -base64 48` (башка маани) | |
+     | `CLIENT_URL` | Vercel берген домен, мис. `https://ainabi-business.vercel.app` | Deploy кылгандан кийин так дарек белгилүү болот — биринчи жолу божомол коюп, кийин так дарек менен жаңыртыңыз |
+     | `COOKIE_CROSS_SITE` | **коюлбасын / `false`** | Бир доменде болгондуктан керек эмес |
+     | `GOOGLE_CLIENT_ID` | Google Cloud Console'догу Client ID | |
+     | `VITE_GOOGLE_CLIENT_ID` | Ошол эле Client ID | |
+     | `VITE_API_URL` | **коюлбасын** | Бир домен болгондуктан `/api` өзү туура иштейт |
+
+4. Import баракта `backend` сервисинин карточкасын ачып, **Build and
+   Output Settings** бөлүмүнө (сиз көрсөткөн скриншотто ошол эле жерде)
+   төмөнкү **Build Command**ди коюңуз (`prisma migrate deploy` база
+   схемасын өзү орнотот, ар бир deploy'до коопсуз кайра иштетсе болот):
+
+   ```
+   npm install && npx prisma generate && npx prisma migrate deploy && npm run build
+   ```
+
+   (`postinstall` скрипти `prisma generate`ди өзү да чакырат — бул команда
+   аны кайра ырастайт жана `migrate deploy`ди кошот.)
+
+5. **Deploy** басыңыз.
+
+6. Deploy бүткөндөн кийин чыныгы дарек белгилүү болот
+   (`https://xxxx.vercel.app`). Ошол даректи `CLIENT_URL`
+   айнымалысына так коюп, **Redeploy** басыңыз (Vercel Dashboard →
+   Deployments → ... → Redeploy).
 
 ---
 
-## 2. Backend → Railway (же Render)
+## Вариант B — Frontend Vercel'де, Backend Railway'де
 
-1. https://railway.app — GitHub аккаунтуңуз менен кириңиз.
-2. **New Project → Deploy from GitHub repo** → репозиторийиңизди тандаңыз.
-3. **Root Directory**'ди `backend` кылып коюңуз (монорепо болгондуктан).
-4. **+ New → Database → PostgreSQL** кошуп, Railway автоматтык `DATABASE_URL`
-   берет.
-5. **Variables** бөлүмүнө төмөнкүлөрдү коюңуз (`backend/.env.example`ден
-   көчүрүп, чыныгы маанилерди коюңуз):
+Эгер backend'ди өзүнчө, туруктуу серверде (эч кандай serverless чектөөсүз)
+кармагыңыз келсе:
 
-   | Айнымалы | Маани |
-   |---|---|
-   | `NODE_ENV` | `production` |
-   | `DATABASE_URL` | Railway автоматтык берет |
-   | `JWT_ACCESS_SECRET` | `openssl rand -base64 48` менен түзүлгөн |
-   | `JWT_REFRESH_SECRET` | `openssl rand -base64 48` менен түзүлгөн (башка) |
-   | `CLIENT_URL` | `https://ваш-домен.vercel.app` (Vercel'ден кийин коёсуз) |
-   | `COOKIE_CROSS_SITE` | `true` (frontend/backend башка домендерде болгондуктан) |
-   | `GOOGLE_CLIENT_ID` | Google Cloud Console'догу Client ID |
+### Backend → Railway
 
-6. **Build Command**: `npm install && npx prisma generate && npm run build`
-7. **Start Command**: `npx prisma migrate deploy && npm start`
-8. Деплойдон кийин Railway сизге `https://xxxx.up.railway.app` дарегин
-   берет — бул сиздин backend URL'иңиз.
+1. https://railway.app → **New Project → Deploy from GitHub repo**.
+2. **Root Directory**: `backend`.
+3. **+ New → Database → PostgreSQL** — Railway `DATABASE_URL`'ди өзү берет.
+4. **Variables**: жогорудагы таблицадагыдай эле, бирок:
+   - `COOKIE_CROSS_SITE` = **`true`** (frontend башка доменде болгондуктан)
+   - `CLIENT_URL` = Vercel'ден алган frontend дареги
+5. **Build Command**: `npm install && npx prisma generate && npm run build`
+6. **Start Command**: `npx prisma migrate deploy && npm start`
 
-Эгер чыныгы домен (`api.ainabi.kg`) байлагыңыз келсе — Railway'дин Settings →
-Domains бөлүмүнөн жасайсыз.
+### Frontend → Vercel
+
+1. **Root Directory**: `frontend`.
+2. **Environment Variables**:
+   - `VITE_API_URL` = Railway'ден алган backend дареги (мис. `https://xxxx.up.railway.app`)
+   - `VITE_GOOGLE_CLIENT_ID` = Google Client ID
+3. Deploy болгондон кийин, Railway'деги `CLIENT_URL`'ди так Vercel дарегине
+   жаңыртыңыз.
 
 ---
 
-## 3. Frontend → Vercel
-
-1. https://vercel.com — GitHub менен кириңиз.
-2. **Add New → Project** → репозиторийиңизди тандаңыз.
-3. **Root Directory**: `frontend`
-4. Framework автоматтык **Vite** деп табылат.
-5. **Environment Variables**:
-
-   | Айнымалы | Маани |
-   |---|---|
-   | `VITE_API_URL` | Railway'ден алган backend URL, мис. `https://xxxx.up.railway.app` |
-   | `VITE_GOOGLE_CLIENT_ID` | Ошол эле Google Client ID |
-
-6. **Deploy** басыңыз. Бүткөндөн кийин Vercel `https://xxxx.vercel.app`
-   дарегин берет.
-7. Домениңиз бар болсо — Vercel → Settings → Domains бөлүмүнөн кошуңуз.
-
-**Маанилүү:** Frontend URL белгилүү болгондон кийин, Railway'деги
-`CLIENT_URL` айнымалысын ошол чыныгы Vercel/домен дарегине жаңыртыңыз
-(`https://xxxx.vercel.app` же `https://ainabi.kg`), антпесе CORS бөгөйт.
-
----
-
-## 4. Google Sign-In'ди продакшенге чыгаруу
+## Google Sign-In'ди продакшенге чыгаруу (эки вариантта тең)
 
 1. https://console.cloud.google.com/apis/credentials → Client ID'ди ачыңыз.
-2. **Authorized JavaScript origins**'ке кошуңуз: `https://ваш-домен.vercel.app`
-   (жана өз доменди да, эгер бар болсо).
+2. **Authorized JavaScript origins**'ке чыныгы деплой дарегиңизди кошуңуз
+   (мис. `https://ainabi-business.vercel.app`).
 3. **OAuth consent screen** → **Publishing status** → **PUBLISH APP**.
-   - Талап кылынат: Privacy Policy шилтемеси (жөнөкөй барак жасап, `/privacy`
-     сыяктуу жолго коюуга болот).
-   - Негизги scope'лор (email, profile) "sensitive" эмес — Google'дун узак
-     текшерүүсүн талап кылбайт, көбүнчө дароо жарыяланат.
+   Талап кылынат: Privacy Policy шилтемеси (жөнөкөй барак жасап коюуга
+   болот). Негизги scope'лор (email, profile) Google'дун узак текшерүүсүн
+   талап кылбайт — көбүнчө дароо жарыяланат.
 
 ---
 
-## 5. Акыркы текшерүү (checklist)
+## Акыркы текшерүү (checklist)
 
-- [ ] `backend/.env`, `frontend/.env` GitHub'го түшкөн жок
+- [ ] `.env` файлдар GitHub'го түшкөн жок (`git status` менен текшериңиз)
 - [ ] `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` — 48+ белгилүү, кокустан
-      түзүлгөн (эч качан `dev_...` калбасын — сервер муну текшерип, ката
-      берет)
-- [ ] Railway'де `NODE_ENV=production`
-- [ ] Railway'де `COOKIE_CROSS_SITE=true`
-- [ ] `CLIENT_URL` чыныгы Vercel/домен дарегине коюлган
-- [ ] `VITE_API_URL` чыныгы Railway/домен дарегине коюлган
-- [ ] Google Console'до эки жерге тең (`Authorized origins` + `.env`'лер)
-      бирдей Client ID
-- [ ] `npx prisma migrate deploy` биринчи деплойдо иштетилди (база бош
-      болбошу үчүн)
-- [ ] Сайтка `https://` менен гана кирилет (HTTP'тан автоматтык
-      багытталат — Vercel/Railway муну өзү жасайт)
+      түзүлгөн (сервер `dev_...` же кыска сыр менен production'до
+      баштала электе эле ката берет — бул атайылап ушундай)
+- [ ] `DATABASE_URL` продакшен базага көрсөтөт (локалдук эмес)
+- [ ] Вариант A: `COOKIE_CROSS_SITE` коюлган эмес / `false`, `VITE_API_URL` бош
+- [ ] Вариант B: `COOKIE_CROSS_SITE=true`, `VITE_API_URL` backend дарегине коюлган
+- [ ] `CLIENT_URL` чыныгы деплой дарегине туура коюлган (deploy кылгандан
+      кийин жаңыртылды)
+- [ ] Google Console'до `Authorized origins` + эки `.env`'дегі
+      `GOOGLE_CLIENT_ID`/`VITE_GOOGLE_CLIENT_ID` бирдей
+- [ ] Биринчи deploy'до `prisma migrate deploy` ийгиликтүү иштеди (Vercel/Railway
+      логдорунан текшериңиз — "No pending migrations" же "applied" деп чыгышы керек)
+- [ ] Сайтка `https://` менен гана кирилет
 
-Ушулардын баары аткарылса, домениңизди Google'го (жана бардык колдонуучуга)
-коркунучсуз ачсаңыз болот.
+Ушулардын баары аткарылса, домениңизди коркунучсуз ачсаңыз болот.
