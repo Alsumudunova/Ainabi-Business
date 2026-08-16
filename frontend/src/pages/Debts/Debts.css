@@ -1,0 +1,16 @@
+@media (max-width: 560px) {
+  .debts-summary-banner {
+    flex-wrap: wrap;
+  }
+  .debts-summary-banner .spacer {
+    display: none;
+  }
+  .debts-summary-banner > div:last-child {
+    text-align: left !important;
+  }
+}
+@media (max-width: 380px) {
+  .debts-summary-banner .mono-num {
+    font-size: var(--font-size-2xl) !important;
+  }
+}

@@ -1,0 +1,124 @@
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 900px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+  .auth-brand-panel {
+    display: none;
+  }
+}
+@media (max-width: 420px) {
+  .auth-form-panel {
+    padding: var(--space-4);
+  }
+  .auth-title {
+    font-size: var(--font-size-xl);
+  }
+}
+
+.auth-brand-panel {
+  background: linear-gradient(160deg, var(--color-primary-700), var(--color-primary-600) 55%, var(--color-accent-teal));
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-9);
+}
+.auth-brand-mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: 800;
+  font-size: var(--font-size-xl);
+}
+.auth-brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.auth-brand-headline {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.25;
+  max-width: 460px;
+  letter-spacing: -0.01em;
+}
+.auth-brand-sub {
+  margin-top: var(--space-4);
+  font-size: var(--font-size-lg);
+  opacity: 0.85;
+  max-width: 420px;
+}
+.auth-brand-points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.auth-brand-point {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  opacity: 0.92;
+}
+
+.auth-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--color-bg);
+}
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.auth-card-header {
+  margin-bottom: var(--space-6);
+}
+.auth-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+}
+.auth-subtitle {
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+.auth-footer-note {
+  text-align: center;
+  margin-top: var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+.auth-footer-note a {
+  color: var(--color-primary-600);
+  font-weight: 700;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: var(--space-5) 0;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}

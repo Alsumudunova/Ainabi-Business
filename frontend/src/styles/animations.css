@@ -1,0 +1,105 @@
+/* Ainabi Business — shared motion system.
+   Kept subtle and fast (180–320ms) so the app still feels snappy for a
+   cashier clicking through dozens of sales a day — motion should reassure,
+   never slow anyone down. Respects prefers-reduced-motion globally. */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Note: `fade-in` (opacity only) is already defined in components.css for the
+   modal/drawer overlay — reused here rather than redefined. */
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(180, 35, 24, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(180, 35, 24, 0);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-in {
+  animation: fade-in-up 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade {
+  animation: fade-in 0.28s ease both;
+}
+
+/* Apply to a grid/list wrapper — direct children fade up in a quick cascade.
+   Capped at 10 items so a long table body doesn't stagger for seconds. */
+.stagger-in > * {
+  animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger-in > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-in > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-in > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-in > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-in > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-in > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-in > *:nth-child(n + 7) { animation-delay: 240ms; }
+
+/* Route transitions — the <Outlet> wrapper remounts (keyed by pathname). */
+.route-transition {
+  animation: fade-in-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Hoverable cards (KPI tiles, POS product cards, clickable rows) lift gently. */
+.card-hoverable {
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+.card-hoverable:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+}
+
+.pulse-danger {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.pop-once {
+  animation: pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
