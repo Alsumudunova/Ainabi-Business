@@ -4,7 +4,9 @@ const nodeEnv = process.env.NODE_ENV ?? "development";
 export const isProduction = nodeEnv === "production";
 
 function required(name: string): string {
-  const value = process.env[name];
+  // .trim() guards against a stray trailing newline/space from copy-pasting
+  // a value into a dashboard env var field (a real, previously-hit bug).
+  const value = process.env[name]?.trim();
   if (!value) {
     throw new Error(`Environment variable ${name} is required`);
   }
@@ -48,7 +50,7 @@ export const env = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "30d",
   },
   google: {
-    clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+    clientId: (process.env.GOOGLE_CLIENT_ID ?? "").trim(),
   },
   refreshCookieName: "ainabi_refresh_token",
   // Set to "true" when the frontend and backend live on different domains

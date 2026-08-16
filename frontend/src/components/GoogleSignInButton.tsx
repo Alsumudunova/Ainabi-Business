@@ -3,7 +3,10 @@ import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/useToast";
 import { extractErrorMessage } from "../services/api";
 
-const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+// .trim() guards against a stray trailing newline/space from copy-pasting
+// the value into a dashboard env var field — Google rejects a client_id
+// that doesn't match byte-for-byte, so whitespace silently breaks sign-in.
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim();
 
 interface GoogleSignInButtonProps {
   onSuccess?: () => void;
