@@ -34,7 +34,7 @@ export default function Login() {
     try {
       await login(values.email, values.password);
       showToast({ variant: "success", title: "Кош келиңиз!", message: "Ийгиликтүү кирдиңиз." });
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       showToast({ variant: "error", title: "Кире алган жок", message: extractErrorMessage(error, "Email же пароль туура эмес.") });
     } finally {
@@ -52,7 +52,7 @@ export default function Login() {
             <p className="auth-subtitle">Аккаунтуңузга кирип, дүкөнүңүздү башкарууну улантыңыз.</p>
           </div>
 
-          <GoogleSignInButton onSuccess={() => { showToast({ variant: "success", title: "Кош келиңиз!" }); navigate("/"); }} />
+          <GoogleSignInButton onSuccess={() => { showToast({ variant: "success", title: "Кош келиңиз!" }); navigate("/dashboard"); }} />
           <div className="auth-divider">же email менен</div>
 
           <form className="stack gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>

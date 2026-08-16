@@ -37,7 +37,7 @@ export default function Register() {
     try {
       await registerAccount(values);
       showToast({ variant: "success", title: "Аккаунт түзүлдү!", message: "Ainabi Business'ке кош келиңиз." });
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       showToast({ variant: "error", title: "Катталган жок", message: extractErrorMessage(error) });
     } finally {
@@ -55,7 +55,7 @@ export default function Register() {
             <p className="auth-subtitle">2 мүнөттөн азыраак убакытта башталыңыз — карта талап кылынбайт.</p>
           </div>
 
-          <GoogleSignInButton onSuccess={() => { showToast({ variant: "success", title: "Аккаунт түзүлдү!", message: "Ainabi Business'ке кош келиңиз." }); navigate("/"); }} />
+          <GoogleSignInButton onSuccess={() => { showToast({ variant: "success", title: "Аккаунт түзүлдү!", message: "Ainabi Business'ке кош келиңиз." }); navigate("/dashboard"); }} />
           <div className="auth-divider">же email менен катталуу</div>
 
           <form className="stack gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>

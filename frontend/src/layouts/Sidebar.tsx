@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { to: "/", label: "Башкы бет", icon: LayoutDashboard, end: true },
+  { to: "/dashboard", label: "Башкы бет", icon: LayoutDashboard, end: true },
   { to: "/pos", label: "Сатуу", icon: ShoppingCart },
   { to: "/products", label: "Товарлар", icon: Package },
   { to: "/stock", label: "Склад", icon: Warehouse },

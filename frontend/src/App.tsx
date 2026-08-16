@@ -6,6 +6,7 @@ import { ToastStack } from "./components/ui/ToastStack";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppLayout } from "./layouts/AppLayout";
 
+const Landing = lazy(() => import("./pages/Landing/Landing"));
 const Login = lazy(() => import("./pages/Auth/Login"));
 const Register = lazy(() => import("./pages/Auth/Register"));
 const ForgotPassword = lazy(() => import("./pages/Auth/ForgotPassword"));
@@ -37,13 +38,14 @@ export default function App() {
         <AuthProvider>
           <Suspense fallback={<PageFallback />}>
             <Routes>
+              <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
-                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/pos" element={<Pos />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/stock" element={<Stock />} />
