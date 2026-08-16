@@ -1,4 +1,8 @@
-import bcrypt from "bcrypt";
+// bcryptjs (pure JS, no native binding) instead of bcrypt — the native
+// module's compiled binary reliably breaks in Vercel's serverless bundle,
+// which was the actual cause of the 500 on login. Hash format is identical,
+// so existing bcrypt-hashed passwords keep working.
+import bcrypt from "bcryptjs";
 import { createHash } from "crypto";
 
 const SALT_ROUNDS = 12;
