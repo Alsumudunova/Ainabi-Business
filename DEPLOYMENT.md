@@ -51,7 +51,8 @@ Vercel GitHub репозиторийиңизди import кылганда `fronte
      | Айнымалы | Маани | Эскертүү |
      |---|---|---|
      | `NODE_ENV` | `production` | |
-     | `DATABASE_URL` | Neon/Supabase'ден алган connection string | |
+     | `DATABASE_URL` | Neon'дун **pooled** (`-pooler`) connection string | Колдонуучулардын күнүмдүк сурамдары үчүн |
+     | `DIRECT_URL` | Ошол эле дарек, бирок `-pooler` алынып салынган | Prisma миграциялары үчүн |
      | `JWT_ACCESS_SECRET` | `openssl rand -base64 48` | |
      | `JWT_REFRESH_SECRET` | `openssl rand -base64 48` (башка маани) | |
      | `CLIENT_URL` | Vercel берген домен, мис. `https://ainabi-business.vercel.app` | Deploy кылгандан кийин так дарек белгилүү болот — биринчи жолу божомол коюп, кийин так дарек менен жаңыртыңыз |
@@ -60,17 +61,11 @@ Vercel GitHub репозиторийиңизди import кылганда `fronte
      | `VITE_GOOGLE_CLIENT_ID` | Ошол эле Client ID | |
      | `VITE_API_URL` | **коюлбасын** | Бир домен болгондуктан `/api` өзү туура иштейт |
 
-4. Import баракта `backend` сервисинин карточкасын ачып, **Build and
-   Output Settings** бөлүмүнө (сиз көрсөткөн скриншотто ошол эле жерде)
-   төмөнкү **Build Command**ди коюңуз (`prisma migrate deploy` база
-   схемасын өзү орнотот, ар бир deploy'до коопсуз кайра иштетсе болот):
-
-   ```
-   npm install && npx prisma generate && npx prisma migrate deploy && npm run build
-   ```
-
-   (`postinstall` скрипти `prisma generate`ди өзү да чакырат — бул команда
-   аны кайра ырастайт жана `migrate deploy`ди кошот.)
+4. Build/Install командаларды (`prisma generate`, `prisma migrate deploy`)
+   жана backend'дин так кайсы файлдан башталарын (`entrypoint`) көрсөтүү
+   керек эмес — булар репонун түбүндөгү `vercel.json`'до мурунтан жазылган,
+   Vercel аны GitHub'дон окуп, өзү колдонот. UI'де кол менен эч нерсе
+   коюунун кереги жок.
 
 5. **Deploy** басыңыз.
 
