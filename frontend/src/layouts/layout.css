@@ -112,7 +112,11 @@
   position: fixed;
   inset: 0;
   background: rgba(16, 24, 40, 0.5);
-  z-index: 45;
+  /* Must stay BELOW the sidebar's z-index (40) — it only needs to dim the
+     page behind the drawer. Having it higher (as it was) put an invisible
+     click-catcher over the drawer itself, silently swallowing every tap
+     on a nav link before it ever reached the link. */
+  z-index: 39;
 }
 
 @media (max-width: 960px) {
