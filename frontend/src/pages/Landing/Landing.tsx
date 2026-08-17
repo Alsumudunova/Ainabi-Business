@@ -3,8 +3,9 @@ import {
   ArrowRight,
   BarChart3,
   CheckCircle2,
+  Instagram,
+  MessageCircle,
   Package,
-  Receipt,
   ShoppingCart,
   UserPlus,
   Users,
@@ -170,9 +171,14 @@ export default function Landing() {
 
       <footer className="landing-footer">
         <span>© {new Date().getFullYear()} Ainabi Business</span>
-        <span className="row gap-2">
-          <Receipt size={14} /> Кыргызстандагы чакан жана орто бизнес үчүн
-        </span>
+        <div className="landing-footer-contacts">
+          <a href="https://instagram.com/ainabi.studio" target="_blank" rel="noopener noreferrer" className="landing-footer-link">
+            <Instagram size={16} /> @ainabi.studio
+          </a>
+          <a href="https://wa.me/996702952200" target="_blank" rel="noopener noreferrer" className="landing-footer-link">
+            <MessageCircle size={16} /> +996 702 952 200
+          </a>
+        </div>
       </footer>
     </div>
   );

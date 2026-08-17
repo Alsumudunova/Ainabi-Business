@@ -2,13 +2,17 @@
   min-height: 100vh;
   background: var(--color-bg);
   overflow-x: hidden;
+  /* Room for the fixed nav below so it never overlaps the hero on load. */
+  padding-top: 76px;
 }
 
 /* ---------- Nav ---------- */
 .landing-nav {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 20;
+  left: 0;
+  right: 0;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -42,6 +46,9 @@
   gap: var(--space-3);
 }
 @media (max-width: 560px) {
+  .landing {
+    padding-top: 64px;
+  }
   .landing-nav {
     padding: var(--space-3) var(--space-4);
   }
@@ -319,4 +326,21 @@
   border-top: 1px solid var(--color-border);
   flex-wrap: wrap;
   gap: var(--space-3);
+}
+.landing-footer-contacts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.landing-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+.landing-footer-link:hover {
+  color: var(--color-primary-600);
 }
