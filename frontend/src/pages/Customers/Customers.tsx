@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Phone, Plus, Search, SquarePen, Trash2, Users } from "lucide-react";
+import { Clock, Phone, Plus, Search, SquarePen, Trash2, Users } from "lucide-react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { SkeletonRows } from "../../components/ui/Skeleton";
 import { Badge } from "../../components/ui/Badge";
@@ -13,12 +13,21 @@ import { extractErrorMessage } from "../../services/api";
 import { formatDate, formatMoney } from "../../utils/format";
 import type { Customer } from "../../types";
 
+const INACTIVE_DAYS = 30;
+
+function isInactive(c: Customer): boolean {
+  if (!c.lastPurchaseAt || c.purchaseCount === 0) return false;
+  const daysSince = (Date.now() - new Date(c.lastPurchaseAt).getTime()) / (1000 * 60 * 60 * 24);
+  return daysSince >= INACTIVE_DAYS;
+}
+
 export default function Customers() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[] | null>(null);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
+  const [showInactiveOnly, setShowInactiveOnly] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -58,6 +67,12 @@ export default function Customers() {
     }
   }
 
+  const inactiveCount = useMemo(() => (customers ?? []).filter(isInactive).length, [customers]);
+  const visibleCustomers = useMemo(
+    () => (showInactiveOnly ? (customers ?? []).filter(isInactive) : customers ?? []),
+    [customers, showInactiveOnly],
+  );
+
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -92,27 +107,52 @@ export default function Customers() {
         </button>
       </div>
 
+      {inactiveCount > 0 && (
+        <button
+          className="card card-pad row gap-4 card-hoverable"
+          style={{ textAlign: "left", cursor: "pointer", border: showInactiveOnly ? "1px solid var(--color-primary-500)" : undefined }}
+          onClick={() => setShowInactiveOnly((v) => !v)}
+        >
+          <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "var(--color-warning-bg)", color: "var(--color-warning-text)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Clock size={20} />
+          </div>
+          <div className="stack gap-1">
+            <span style={{ fontWeight: 700 }}>{inactiveCount} кардар {INACTIVE_DAYS}+ күндөн бери келген жок</span>
+            <span className="text-muted" style={{ fontSize: "var(--font-size-sm)" }}>
+              {showInactiveOnly ? "Баарын көрүү үчүн басыңыз" : "Аларга кайра кайрылып көрүңүз — тизмени көрүү үчүн басыңыз"}
+            </span>
+          </div>
+        </button>
+      )}
+
       <div className="card">
         <div className="filter-bar">
           <div className="input-with-icon">
             <Search size={16} />
             <input className="input" placeholder="Кардар же телефон боюнча издөө" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
+          {showInactiveOnly && (
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowInactiveOnly(false)}>
+              Фильтрди алып салуу
+            </button>
+          )}
         </div>
 
         {customers === null ? (
           <div className="card-pad">
             <SkeletonRows rows={6} height={52} />
           </div>
-        ) : customers.length === 0 ? (
+        ) : visibleCustomers.length === 0 ? (
           <EmptyState
             icon={<Users size={26} />}
-            title="Азырынча кардар жок"
-            subtitle="Биринчи кардарыңызды кошуп баштаңыз."
+            title={showInactiveOnly ? "Активсиз кардар жок" : "Азырынча кардар жок"}
+            subtitle={showInactiveOnly ? "Бардык кардарларыңыз жакында сатып алган." : "Биринчи кардарыңызды кошуп баштаңыз."}
             action={
-              <button className="btn btn-primary" style={{ marginTop: "var(--space-2)" }} onClick={() => setDrawerOpen(true)}>
-                <Plus size={16} /> Кардар кошуу
-              </button>
+              !showInactiveOnly && (
+                <button className="btn btn-primary" style={{ marginTop: "var(--space-2)" }} onClick={() => setDrawerOpen(true)}>
+                  <Plus size={16} /> Кардар кошуу
+                </button>
+              )
             }
           />
         ) : (
@@ -130,7 +170,7 @@ export default function Customers() {
                 </tr>
               </thead>
               <tbody>
-                {customers.map((c) => (
+                {visibleCustomers.map((c) => (
                   <tr key={c.id} className="table-row-clickable" onClick={() => navigate(`/customers/${c.id}`)}>
                     <td style={{ fontWeight: 700 }}>{c.name}</td>
                     <td className="text-muted">
@@ -145,7 +185,12 @@ export default function Customers() {
                     <td className="table-cell-num">{c.purchaseCount}</td>
                     <td className="table-cell-num">{formatMoney(c.totalSpent)}</td>
                     <td className="table-cell-num">{c.debt > 0 ? <Badge variant="danger">{formatMoney(c.debt)}</Badge> : "—"}</td>
-                    <td className="text-muted">{c.lastPurchaseAt ? formatDate(c.lastPurchaseAt) : "—"}</td>
+                    <td className="text-muted">
+                      <div className="stack gap-1">
+                        <span>{c.lastPurchaseAt ? formatDate(c.lastPurchaseAt) : "—"}</span>
+                        {isInactive(c) && <Badge variant="warning">{INACTIVE_DAYS}+ күн келген жок</Badge>}
+                      </div>
+                    </td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <div className="table-actions">
                         <button

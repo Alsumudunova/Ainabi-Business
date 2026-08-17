@@ -1,6 +1,6 @@
 import { prisma } from "../config/prisma";
 import { ApiError } from "../utils/ApiError";
-import { toNumber } from "../utils/money";
+import { round2, toNumber } from "../utils/money";
 import { CreateStockMovementInput, StockQuery } from "../validators/stock.validator";
 
 export async function createMovement(businessId: string, employeeId: string, input: CreateStockMovementInput) {
@@ -80,6 +80,52 @@ export async function listMovements(businessId: string, query: StockQuery) {
     total,
     totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
   };
+}
+
+const REORDER_LOOKBACK_DAYS = 14;
+const REORDER_URGENCY_DAYS = 7;
+
+/**
+ * Estimates how many days of stock are left per product from recent sale
+ * velocity (units sold over the last 14 days / 14), and flags anything
+ * projected to run out within a week — a step ahead of the plain
+ * quantity <= minQuantity low-stock check, which says nothing about *when*.
+ */
+export async function getReorderSuggestions(businessId: string) {
+  const since = new Date();
+  since.setDate(since.getDate() - REORDER_LOOKBACK_DAYS);
+
+  const [products, soldItems] = await Promise.all([
+    prisma.product.findMany({ where: { businessId, status: "ACTIVE" } }),
+    prisma.saleItem.findMany({
+      where: { sale: { businessId, createdAt: { gte: since }, status: "COMPLETED" } },
+      select: { productId: true, quantity: true },
+    }),
+  ]);
+
+  const soldByProduct = new Map<string, number>();
+  for (const item of soldItems) {
+    soldByProduct.set(item.productId, (soldByProduct.get(item.productId) ?? 0) + toNumber(item.quantity));
+  }
+
+  return products
+    .map((p) => {
+      const quantity = toNumber(p.quantity);
+      const soldLast14Days = soldByProduct.get(p.id) ?? 0;
+      const dailyVelocity = round2(soldLast14Days / REORDER_LOOKBACK_DAYS);
+      const daysUntilStockout = dailyVelocity > 0 ? Math.floor(quantity / dailyVelocity) : null;
+      return {
+        productId: p.id,
+        name: p.name,
+        quantity,
+        unit: p.unit,
+        dailyVelocity,
+        daysUntilStockout,
+      };
+    })
+    .filter((p) => p.dailyVelocity > 0 && p.daysUntilStockout !== null && p.daysUntilStockout <= REORDER_URGENCY_DAYS)
+    .sort((a, b) => (a.daysUntilStockout ?? 0) - (b.daysUntilStockout ?? 0))
+    .slice(0, 10);
 }
 
 export async function stockSummary(businessId: string) {

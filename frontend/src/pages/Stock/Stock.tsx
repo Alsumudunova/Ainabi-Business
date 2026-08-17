@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, Boxes, Package, PackageX, Plus, Wallet } from "lucide-react";
+import { AlertTriangle, Boxes, Package, PackageX, Plus, TrendingDown, Wallet } from "lucide-react";
 import { KpiCard } from "../../components/ui/KpiCard";
 import { SkeletonRows } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -29,6 +29,7 @@ export default function Stock() {
   const { showToast } = useToast();
   const [tab, setTab] = useState<TabKey>("BALANCE");
   const [summary, setSummary] = useState<stockService.StockSummary | null>(null);
+  const [reorderSuggestions, setReorderSuggestions] = useState<stockService.ReorderSuggestion[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [movements, setMovements] = useState<StockMovement[] | null>(null);
   const [page, setPage] = useState(1);
@@ -39,6 +40,7 @@ export default function Stock() {
 
   const loadSummary = useCallback(() => {
     stockService.getStockSummary().then(setSummary).catch(() => undefined);
+    stockService.getReorderSuggestions().then(setReorderSuggestions).catch(() => undefined);
   }, []);
 
   const loadProducts = useCallback(() => {
@@ -125,6 +127,50 @@ export default function Stock() {
           </>
         )}
       </div>
+
+      {reorderSuggestions && reorderSuggestions.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <div>
+              <h2 className="card-title">
+                <TrendingDown size={16} style={{ marginRight: 6, verticalAlign: -2 }} />
+                Заказ бериш убактысы
+              </h2>
+              <p className="card-subtitle">Акыркы 14 күндүн сатуу ылдамдыгына жараша, бул товарлар жакында бүтөт</p>
+            </div>
+          </div>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Товар</th>
+                  <th className="table-cell-num">Учурдагы калдык</th>
+                  <th className="table-cell-num">Күнүнө сатылат</th>
+                  <th>Болжолдуу мөөнөт</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reorderSuggestions.map((r) => (
+                  <tr key={r.productId}>
+                    <td style={{ fontWeight: 600 }}>{r.name}</td>
+                    <td className="table-cell-num">
+                      {formatNumber(r.quantity)} {unitLabel(r.unit)}
+                    </td>
+                    <td className="table-cell-num">
+                      {formatNumber(r.dailyVelocity)} {unitLabel(r.unit)}
+                    </td>
+                    <td>
+                      <Badge variant={r.daysUntilStockout !== null && r.daysUntilStockout <= 2 ? "danger" : "warning"}>
+                        {r.daysUntilStockout === 0 ? "Бүгүн-эртең бүтөт" : `~${r.daysUntilStockout} күндөн кийин бүтөт`}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <div className="stock-toolbar">

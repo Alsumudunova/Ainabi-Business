@@ -14,6 +14,11 @@ export const summaryHandler = asyncHandler(async (req: Request, res: Response) =
   res.json(summary);
 });
 
+export const reorderSuggestionsHandler = asyncHandler(async (req: Request, res: Response) => {
+  const suggestions = await stockService.getReorderSuggestions(req.auth!.businessId);
+  res.json(suggestions);
+});
+
 export const createHandler = asyncHandler(async (req: Request, res: Response) => {
   const input = createStockMovementSchema.parse(req.body);
   const movement = await stockService.createMovement(req.auth!.businessId, req.auth!.employeeId, input);

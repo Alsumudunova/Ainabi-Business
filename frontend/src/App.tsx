@@ -10,6 +10,8 @@ const Landing = lazy(() => import("./pages/Landing/Landing"));
 const Login = lazy(() => import("./pages/Auth/Login"));
 const Register = lazy(() => import("./pages/Auth/Register"));
 const ForgotPassword = lazy(() => import("./pages/Auth/ForgotPassword"));
+const Privacy = lazy(() => import("./pages/Legal/Privacy"));
+const Terms = lazy(() => import("./pages/Legal/Terms"));
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
 const Products = lazy(() => import("./pages/Products/Products"));
 const Pos = lazy(() => import("./pages/Pos/Pos"));
@@ -44,6 +46,8 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>

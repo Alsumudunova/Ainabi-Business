@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
@@ -267,6 +267,8 @@ export default function Landing() {
       <footer className="landing-footer">
         <span>© {new Date().getFullYear()} Ainabi Business</span>
         <div className="landing-footer-contacts">
+          <Link to="/privacy" className="landing-footer-link">Купуялык саясаты</Link>
+          <Link to="/terms" className="landing-footer-link">Колдонуу шарттары</Link>
           <a href="https://instagram.com/ainabi.studio" target="_blank" rel="noopener noreferrer" className="landing-footer-link">
             <Instagram size={16} /> @ainabi.studio
           </a>

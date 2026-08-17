@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
+import { businessRateLimit } from "../middleware/businessRateLimit";
 import { requireRole } from "../middleware/requireRole";
 import {
   createHandler,
@@ -12,7 +13,7 @@ import {
 
 const router = Router();
 
-router.use(requireAuth);
+router.use(requireAuth, businessRateLimit);
 router.get("/", listHandler);
 router.get("/barcode/:barcode", getByBarcodeHandler);
 router.get("/:id", getHandler);

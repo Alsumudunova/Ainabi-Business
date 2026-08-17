@@ -1,5 +1,14 @@
 import { api } from "./api";
-import type { Paginated, StockMovement, StockMovementType } from "../types";
+import type { Paginated, ProductUnit, StockMovement, StockMovementType } from "../types";
+
+export interface ReorderSuggestion {
+  productId: string;
+  name: string;
+  quantity: number;
+  unit: ProductUnit;
+  dailyVelocity: number;
+  daysUntilStockout: number | null;
+}
 
 export interface StockSummary {
   totalProducts: number;
@@ -30,6 +39,11 @@ export async function listMovements(params: {
   pageSize?: number;
 }): Promise<Paginated<StockMovement>> {
   const { data } = await api.get<Paginated<StockMovement>>("/stock", { params });
+  return data;
+}
+
+export async function getReorderSuggestions(): Promise<ReorderSuggestion[]> {
+  const { data } = await api.get<ReorderSuggestion[]>("/stock/reorder-suggestions");
   return data;
 }
 
