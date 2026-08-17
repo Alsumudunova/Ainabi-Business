@@ -118,6 +118,52 @@ export interface Debt {
   createdAt: string;
 }
 
+export interface Supplier {
+  id: string;
+  name: string;
+  phone: string | null;
+  address: string | null;
+  totalPurchased: number;
+  debt: number;
+  lastDeliveryAt: string | null;
+  createdAt: string;
+}
+
+export interface SupplierDebtPayment {
+  id: string;
+  amount: number;
+  method: PaymentMethod;
+  createdAt: string;
+}
+
+export interface SupplierDebt {
+  id: string;
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  status: DebtStatus;
+  comment: string | null;
+  createdAt: string;
+  payments: SupplierDebtPayment[];
+}
+
+export interface SupplierDetail {
+  id: string;
+  name: string;
+  phone: string | null;
+  address: string | null;
+  createdAt: string;
+  deliveries: {
+    id: string;
+    productName: string;
+    quantity: number;
+    purchasePrice: number | null;
+    total: number | null;
+    createdAt: string;
+  }[];
+  debts: SupplierDebt[];
+}
+
 export interface Expense {
   id: string;
   category: ExpenseCategory;

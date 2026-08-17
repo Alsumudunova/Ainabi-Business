@@ -81,6 +81,7 @@ model Business {
   debts          Debt[]
   expenses       Expense[]
   suppliers      Supplier[]
+  supplierDebts  SupplierDebt[]
 
   @@map("businesses")
 }
@@ -189,9 +190,46 @@ model Supplier {
   createdAt  DateTime @default(now())
 
   stockMovements StockMovement[]
+  debts          SupplierDebt[]
 
   @@index([businessId])
   @@map("suppliers")
+}
+
+// Amounts *we* owe a supplier for delivered goods — the mirror image of
+// Debt/DebtPayment (which track what customers owe us).
+model SupplierDebt {
+  id              String     @id @default(cuid())
+  businessId      String
+  business        Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  supplierId      String
+  supplier        Supplier   @relation(fields: [supplierId], references: [id])
+  totalAmount     Decimal    @db.Decimal(12, 2)
+  paidAmount      Decimal    @default(0) @db.Decimal(12, 2)
+  remainingAmount Decimal    @db.Decimal(12, 2)
+  status          DebtStatus @default(OPEN)
+  comment         String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  payments SupplierPayment[]
+
+  @@index([businessId])
+  @@index([supplierId])
+  @@map("supplier_debts")
+}
+
+model SupplierPayment {
+  id             String        @id @default(cuid())
+  supplierDebtId String
+  supplierDebt   SupplierDebt  @relation(fields: [supplierDebtId], references: [id], onDelete: Cascade)
+  amount         Decimal       @db.Decimal(12, 2)
+  method         PaymentMethod @default(CASH)
+  comment        String?
+  createdAt      DateTime      @default(now())
+
+  @@index([supplierDebtId])
+  @@map("supplier_payments")
 }
 
 // ---------------------------------------------------------------------------
