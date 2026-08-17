@@ -4,6 +4,7 @@ import {
   BarChart3,
   CheckCircle2,
   Instagram,
+  LayoutDashboard,
   MessageCircle,
   Package,
   ShoppingCart,
@@ -11,10 +12,61 @@ import {
   Users,
   Wallet,
   Warehouse,
+  X,
   Zap,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import "./Landing.css";
+
+const PROBLEMS = [
+  {
+    before: "Тетрадка жазган карызды кимдир бирөө төлөдүбү, унутуп каласызбы?",
+    after: "Ар бир кардардын карызы автоматтык эсепте — качан, канча төлөгөнү дайыма так көрүнөт.",
+  },
+  {
+    before: "Складда кайсы товар канча калганын так билбейсизби?",
+    after: "Ар бир сатуудан кийин склад өзү азаят, аз калган товарды дароо көрөсүз.",
+  },
+  {
+    before: "Айдын аягында чыныгы пайда канча болгонун эсептеп чыга албай жатасызбы?",
+    after: "Дашборд ар дайым так сатуу, чыгым, пайда көрсөтөт — кол менен эсептөөнүн кереги жок.",
+  },
+  {
+    before: "Кызматкериңиз канча сатты, эмне кылганын билбейсизби?",
+    after: "Ар бир кызматкердин сатуусу өзүнчө эсепте — ким эмне кылганы дайыма көрүнөт.",
+  },
+  {
+    before: "Жеткирүүчүгө канча карыз экениңизди унутуп каласызбы?",
+    after: "Жеткирүүчүлөр бөлүмү канча алганыңызды, канча төлөгөнүңүздү так эсепте кармайт.",
+  },
+  {
+    before: "Дүкөндүн абалын билүү үчүн ар дайым жерге барышыңыз керекпи?",
+    after: "Телефон же компьютерден, кайдан болсо да — бизнесиңизди толук көрөсүз.",
+  },
+];
+
+const DAILY_USE = [
+  {
+    icon: LayoutDashboard,
+    title: "Күндү Дашборддон баштаңыз",
+    text: "Бүгүнкү сатуу, пайда жана аз калган товарды бир караганда көрөсүз.",
+  },
+  {
+    icon: ShoppingCart,
+    title: "Сатуу учурунда — Тез сатуу (POS)",
+    text: "Товарды тандап, төлөм ыкмасын басып, бир нече секундда сатууну аяктайсыз.",
+  },
+  {
+    icon: Warehouse,
+    title: "Товар келгенде — Склад",
+    text: "Жаңы келген товарды «Киреше» катары катташыз — баа жана калдык өзү жаңырат.",
+  },
+  {
+    icon: BarChart3,
+    title: "Күн аягында — Отчеттор",
+    text: "Канча сатылганын, кандай пайда тапканыңызды бир көз чаптырып текшересиз.",
+  },
+];
 
 const FEATURES = [
   {
@@ -127,6 +179,28 @@ export default function Landing() {
 
       <section className="landing-section">
         <div className="landing-section-header">
+          <h2 className="landing-section-title">Кандай маселелерди чечет?</h2>
+          <p className="landing-section-subtitle">Кыргызстандагы дүкөн ээлеринин күнүмдүк баш оорусун тааныйсызбы?</p>
+        </div>
+        <div className="landing-problems">
+          {PROBLEMS.map((p) => (
+            <div className="landing-problem-row" key={p.before}>
+              <div className="landing-problem-before">
+                <X size={16} />
+                <span>{p.before}</span>
+              </div>
+              <ArrowRight className="landing-problem-arrow" size={18} />
+              <div className="landing-problem-after">
+                <CheckCircle2 size={16} />
+                <span>{p.after}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-section">
+        <div className="landing-section-header">
           <h2 className="landing-section-title">Эмне үчүн Ainabi Business?</h2>
           <p className="landing-section-subtitle">Бизнесиңизди жүргүзүү үчүн керектүүнүн баары — бир жерде.</p>
         </div>
@@ -154,6 +228,27 @@ export default function Landing() {
               <div className="landing-step-number">{i + 1}</div>
               <h3>{s.title}</h3>
               <p>{s.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-section">
+        <div className="landing-section-header">
+          <h2 className="landing-section-title">Күн сайын кантип колдоносуз?</h2>
+          <p className="landing-section-subtitle">Катталгандан кийин, дүкөнүңүздүн күнү мына ушундай өтөт.</p>
+        </div>
+        <div className="landing-daily">
+          {DAILY_USE.map((d, i) => (
+            <div className="landing-daily-item" key={d.title}>
+              <div className="landing-daily-icon">
+                <d.icon size={20} />
+              </div>
+              <div className="landing-daily-body">
+                <span className="landing-daily-step">Кадам {i + 1}</span>
+                <h3>{d.title}</h3>
+                <p>{d.text}</p>
+              </div>
             </div>
           ))}
         </div>
