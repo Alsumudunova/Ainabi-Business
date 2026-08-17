@@ -3,6 +3,11 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--space-5);
 }
+@media (max-width: 480px) {
+  .stock-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .stock-toolbar {
   display: flex;
   align-items: center;

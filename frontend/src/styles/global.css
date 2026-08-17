@@ -18,6 +18,9 @@ body {
   background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Last-resort backstop — wide content should scroll inside its own
+     .table-wrap etc., never the page itself, on any screen size. */
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, p {

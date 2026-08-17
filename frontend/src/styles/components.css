@@ -158,6 +158,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xs);
+  min-width: 0;
 }
 .card-pad {
   padding: var(--space-6);
@@ -528,6 +529,10 @@
 .stack {
   display: flex;
   flex-direction: column;
+  /* Without this, a flex item won't shrink below its content's intrinsic
+     width — a wide table anywhere inside pushes the whole page sideways
+     on mobile instead of scrolling inside its own .table-wrap. */
+  min-width: 0;
 }
 .gap-1 { gap: var(--space-1); }
 .gap-2 { gap: var(--space-2); }
