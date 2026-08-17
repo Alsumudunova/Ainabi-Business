@@ -340,6 +340,21 @@
   border-radius: var(--radius-md);
   width: fit-content;
   flex-wrap: wrap;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    flex-shrink: 0;
+  }
 }
 .tab {
   padding: var(--space-2) var(--space-4);

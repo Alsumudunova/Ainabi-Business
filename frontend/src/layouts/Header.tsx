@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, LogOut, Menu, Plus, Search, Settings, User } from "lucide-react";
+import { LogOut, Menu, Plus, Settings, User } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { roleLabels } from "../utils/labels";
+import { GlobalSearch } from "./GlobalSearch";
+import { NotificationCenter } from "./NotificationCenter";
 
 interface HeaderProps {
   onOpenMobileSidebar: () => void;
@@ -37,10 +39,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
         <Menu size={18} />
       </button>
 
-      <div className="header-search">
-        <Search size={16} />
-        <input placeholder="Товар же кардар издөө..." />
-      </div>
+      <GlobalSearch />
 
       <div className="spacer" />
 
@@ -50,10 +49,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
           <span className="quick-sale-label">Тез сатуу</span>
         </button>
 
-        <button className="header-icon-btn" aria-label="Билдирүүлөр">
-          <Bell size={17} />
-          <span className="header-icon-dot pulse-danger" />
-        </button>
+        <NotificationCenter />
 
         <div style={{ position: "relative" }} ref={menuRef}>
           <button className="header-profile" onClick={() => setProfileOpen((v) => !v)}>

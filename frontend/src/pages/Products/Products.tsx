@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Barcode, Package, Plus, Search, SquarePen, Trash2 } from "lucide-react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { SkeletonRows } from "../../components/ui/Skeleton";
@@ -22,7 +23,8 @@ export default function Products() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
   const debouncedSearch = useDebouncedValue(search);
   const [categoryId, setCategoryId] = useState("");
   const [stockFilter, setStockFilter] = useState<"" | "low" | "out">("");
@@ -53,6 +55,14 @@ export default function Products() {
       setProducts([]);
     }
   }, [debouncedSearch, categoryId, statusFilter, stockFilter, page, showToast]);
+
+  // Picks up ?q= even when navigating here while already on this page
+  // (e.g. a second global-search hit) since React Router won't remount it.
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) setSearch(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     setPage(1);
