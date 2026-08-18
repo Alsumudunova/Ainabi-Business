@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { LucideIcon, Minus, TrendingDown, TrendingUp } from "lucide-react";
 
 interface KpiCardProps {
@@ -24,6 +25,7 @@ const ACCENT_COLOR: Record<string, string> = {
 };
 
 export function KpiCard({ label, value, changePercent, icon: Icon, accent = "primary", index = 0 }: KpiCardProps) {
+  const { t } = useTranslation();
   const trend = changePercent === undefined ? null : changePercent > 0 ? "up" : changePercent < 0 ? "down" : "flat";
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
 
@@ -57,7 +59,7 @@ export function KpiCard({ label, value, changePercent, icon: Icon, accent = "pri
         <span className={`trend trend-${trend === "up" ? "up" : trend === "down" ? "down" : "flat"}`}>
           <TrendIcon size={14} />
           {changePercent! > 0 ? "+" : ""}
-          {changePercent}% мурунку мезгилге салыштырмалуу
+          {changePercent}% {t("common.kpiTrendSuffix")}
         </span>
       )}
     </div>

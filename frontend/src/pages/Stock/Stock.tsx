@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, Boxes, Package, PackageX, Plus, TrendingDown, Wallet } from "lucide-react";
 import { KpiCard } from "../../components/ui/KpiCard";
 import { SkeletonRows } from "../../components/ui/Skeleton";
@@ -7,26 +8,20 @@ import { Badge } from "../../components/ui/Badge";
 import { Pagination } from "../../components/ui/Pagination";
 import { StockMovementModal } from "./StockMovementModal";
 import { useToast } from "../../hooks/useToast";
+import { useLabels } from "../../hooks/useLabels";
 import * as productService from "../../services/product.service";
 import * as stockService from "../../services/stock.service";
 import { extractErrorMessage } from "../../services/api";
 import { formatDateTime, formatMoney, formatNumber, unitLabel } from "../../utils/format";
-import { stockMovementTypeLabels } from "../../utils/labels";
 import type { Product, StockMovement, StockMovementType } from "../../types";
 import "./Stock.css";
 
 type TabKey = "BALANCE" | "IN" | "OUT" | "WRITE_OFF" | "HISTORY";
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "BALANCE", label: "Калдык" },
-  { key: "IN", label: "Киреше" },
-  { key: "OUT", label: "Чыгаша" },
-  { key: "WRITE_OFF", label: "Списание" },
-  { key: "HISTORY", label: "Кыймыл тарыхы" },
-];
-
 export default function Stock() {
+  const { t } = useTranslation();
   const { showToast } = useToast();
+  const labels = useLabels();
   const [tab, setTab] = useState<TabKey>("BALANCE");
   const [summary, setSummary] = useState<stockService.StockSummary | null>(null);
   const [reorderSuggestions, setReorderSuggestions] = useState<stockService.ReorderSuggestion[] | null>(null);
@@ -38,6 +33,14 @@ export default function Stock() {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const TABS: { key: TabKey; label: string }[] = [
+    { key: "BALANCE", label: t("stock.tabs.BALANCE") },
+    { key: "IN", label: t("stock.tabs.IN") },
+    { key: "OUT", label: t("stock.tabs.OUT") },
+    { key: "WRITE_OFF", label: t("stock.tabs.WRITE_OFF") },
+    { key: "HISTORY", label: t("stock.tabs.HISTORY") },
+  ];
+
   const loadSummary = useCallback(() => {
     stockService.getStockSummary().then(setSummary).catch(() => undefined);
     stockService.getReorderSuggestions().then(setReorderSuggestions).catch(() => undefined);
@@ -48,8 +51,8 @@ export default function Stock() {
     productService
       .listProducts({ status: "ACTIVE", pageSize: 100 })
       .then((res) => setProducts(res.items))
-      .catch((error) => showToast({ variant: "error", title: "Жүктөлгөн жок", message: extractErrorMessage(error) }));
-  }, [showToast]);
+      .catch((error) => showToast({ variant: "error", title: t("stock.loadFailed"), message: extractErrorMessage(error) }));
+  }, [showToast, t]);
 
   const loadMovements = useCallback(
     (type?: StockMovementType) => {
@@ -61,9 +64,9 @@ export default function Stock() {
           setTotal(res.total);
           setTotalPages(res.totalPages);
         })
-        .catch((error) => showToast({ variant: "error", title: "Жүктөлгөн жок", message: extractErrorMessage(error) }));
+        .catch((error) => showToast({ variant: "error", title: t("stock.loadFailed"), message: extractErrorMessage(error) }));
     },
-    [page, showToast],
+    [page, showToast, t],
   );
 
   useEffect(() => {
@@ -90,13 +93,13 @@ export default function Stock() {
     setSubmitting(true);
     try {
       await stockService.createMovement(values);
-      showToast({ variant: "success", title: "Складга кыймыл кошулду" });
+      showToast({ variant: "success", title: t("stock.movementAdded") });
       setModalOpen(false);
       loadSummary();
       loadProducts();
       if (tab !== "BALANCE") loadMovements(tab === "HISTORY" ? undefined : (tab as StockMovementType));
     } catch (error) {
-      showToast({ variant: "error", title: "Сакталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.saveFailed"), message: extractErrorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -106,12 +109,12 @@ export default function Stock() {
     <div className="stack gap-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Склад</h1>
-          <p className="page-subtitle">Товар калдыктарын жана кыймылдарын көзөмөлдөңүз</p>
+          <h1 className="page-title">{t("stock.title")}</h1>
+          <p className="page-subtitle">{t("stock.subtitle")}</p>
         </div>
         <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
           <Plus size={18} />
-          Товар киргизүү
+          {t("stock.add")}
         </button>
       </div>
 
@@ -120,10 +123,10 @@ export default function Stock() {
           Array.from({ length: 4 }).map((_, i) => <div key={i} className="card card-pad" style={{ height: 132 }} />)
         ) : (
           <>
-            <KpiCard index={0} label="Жалпы товар" value={formatNumber(summary.totalProducts)} icon={Package} accent="primary" />
-            <KpiCard index={1} label="Складдын наркы" value={formatMoney(summary.totalValue)} icon={Wallet} accent="primary" />
-            <KpiCard index={2} label="Аз калган товар" value={formatNumber(summary.lowStock)} icon={AlertTriangle} accent="warning" />
-            <KpiCard index={3} label="Запаста жок" value={formatNumber(summary.outOfStock)} icon={PackageX} accent="danger" />
+            <KpiCard index={0} label={t("stock.kpi.totalProducts")} value={formatNumber(summary.totalProducts)} icon={Package} accent="primary" />
+            <KpiCard index={1} label={t("stock.kpi.totalValue")} value={formatMoney(summary.totalValue)} icon={Wallet} accent="primary" />
+            <KpiCard index={2} label={t("stock.kpi.lowStock")} value={formatNumber(summary.lowStock)} icon={AlertTriangle} accent="warning" />
+            <KpiCard index={3} label={t("stock.kpi.outOfStock")} value={formatNumber(summary.outOfStock)} icon={PackageX} accent="danger" />
           </>
         )}
       </div>
@@ -134,19 +137,19 @@ export default function Stock() {
             <div>
               <h2 className="card-title">
                 <TrendingDown size={16} style={{ marginRight: 6, verticalAlign: -2 }} />
-                Заказ бериш убактысы
+                {t("stock.reorder.title")}
               </h2>
-              <p className="card-subtitle">Акыркы 14 күндүн сатуу ылдамдыгына жараша, бул товарлар жакында бүтөт</p>
+              <p className="card-subtitle">{t("stock.reorder.subtitle")}</p>
             </div>
           </div>
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Товар</th>
-                  <th className="table-cell-num">Учурдагы калдык</th>
-                  <th className="table-cell-num">Күнүнө сатылат</th>
-                  <th>Болжолдуу мөөнөт</th>
+                  <th>{t("stock.reorder.product")}</th>
+                  <th className="table-cell-num">{t("stock.reorder.currentStock")}</th>
+                  <th className="table-cell-num">{t("stock.reorder.dailySales")}</th>
+                  <th>{t("stock.reorder.eta")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -161,7 +164,7 @@ export default function Stock() {
                     </td>
                     <td>
                       <Badge variant={r.daysUntilStockout !== null && r.daysUntilStockout <= 2 ? "danger" : "warning"}>
-                        {r.daysUntilStockout === 0 ? "Бүгүн-эртең бүтөт" : `~${r.daysUntilStockout} күндөн кийин бүтөт`}
+                        {r.daysUntilStockout === 0 ? t("stock.reorder.etaToday") : t("stock.reorder.etaDays", { days: r.daysUntilStockout })}
                       </Badge>
                     </td>
                   </tr>
@@ -175,9 +178,9 @@ export default function Stock() {
       <div className="card">
         <div className="stock-toolbar">
           <div className="tabs">
-            {TABS.map((t) => (
-              <button key={t.key} className={`tab ${tab === t.key ? "active" : ""}`} onClick={() => setTab(t.key)}>
-                {t.label}
+            {TABS.map((tabItem) => (
+              <button key={tabItem.key} className={`tab ${tab === tabItem.key ? "active" : ""}`} onClick={() => setTab(tabItem.key)}>
+                {tabItem.label}
               </button>
             ))}
           </div>
@@ -189,17 +192,17 @@ export default function Stock() {
               <SkeletonRows rows={6} height={48} />
             </div>
           ) : products.length === 0 ? (
-            <EmptyState icon={<Boxes size={26} />} title="Товар жок" subtitle="Товарлар бетинен товар кошуңуз." />
+            <EmptyState icon={<Boxes size={26} />} title={t("stock.emptyProducts")} subtitle={t("stock.emptyProductsSubtitle")} />
           ) : (
             <div className="table-wrap">
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Товар</th>
-                    <th>Категория</th>
-                    <th className="table-cell-num">Калдык</th>
-                    <th className="table-cell-num">Мин. калдык</th>
-                    <th>Статус</th>
+                    <th>{t("stock.table.product")}</th>
+                    <th>{t("stock.table.category")}</th>
+                    <th className="table-cell-num">{t("stock.table.stock")}</th>
+                    <th className="table-cell-num">{t("stock.table.minStock")}</th>
+                    <th>{t("stock.table.status")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -215,11 +218,11 @@ export default function Stock() {
                       </td>
                       <td>
                         {p.stockStatus === "OUT" ? (
-                          <Badge variant="danger">Запаста жок</Badge>
+                          <Badge variant="danger">{t("stock.statusOut")}</Badge>
                         ) : p.stockStatus === "LOW" ? (
-                          <Badge variant="warning">Аз калды</Badge>
+                          <Badge variant="warning">{t("stock.statusLow")}</Badge>
                         ) : (
-                          <Badge variant="success">Жетиштүү</Badge>
+                          <Badge variant="success">{t("stock.statusOk")}</Badge>
                         )}
                       </td>
                     </tr>
@@ -233,20 +236,20 @@ export default function Stock() {
             <SkeletonRows rows={6} height={48} />
           </div>
         ) : movements.length === 0 ? (
-          <EmptyState icon={<Boxes size={26} />} title="Кыймыл табылган жок" subtitle="Бул бөлүктө азырынча жазуу жок." />
+          <EmptyState icon={<Boxes size={26} />} title={t("stock.emptyMovements")} subtitle={t("stock.emptyMovementsSubtitle")} />
         ) : (
           <>
             <div className="table-wrap">
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Товар</th>
-                    <th>Түрү</th>
-                    <th className="table-cell-num">Саны</th>
-                    <th className="table-cell-num">Баасы</th>
-                    <th>Жеткирүүчү / комментарий</th>
-                    <th>Кызматкер</th>
-                    <th>Дата</th>
+                    <th>{t("stock.table.product")}</th>
+                    <th>{t("stock.table.type")}</th>
+                    <th className="table-cell-num">{t("stock.table.quantity")}</th>
+                    <th className="table-cell-num">{t("stock.table.price")}</th>
+                    <th>{t("stock.table.supplierComment")}</th>
+                    <th>{t("stock.table.employee")}</th>
+                    <th>{t("stock.table.date")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -255,7 +258,7 @@ export default function Stock() {
                       <td style={{ fontWeight: 600 }}>{m.productName}</td>
                       <td>
                         <Badge variant={m.type === "IN" ? "success" : m.type === "SALE" ? "info" : m.type === "WRITE_OFF" ? "danger" : "warning"}>
-                          {stockMovementTypeLabels[m.type]}
+                          {labels.stockMovementType[m.type]}
                         </Badge>
                       </td>
                       <td className="table-cell-num">{formatNumber(m.quantity)}</td>

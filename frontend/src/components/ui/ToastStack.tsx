@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { CheckCircle2, Info, X, XCircle } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 
@@ -8,6 +9,7 @@ const ICONS = {
 };
 
 export function ToastStack() {
+  const { t } = useTranslation();
   const { toasts, dismissToast } = useToast();
 
   if (toasts.length === 0) return null;
@@ -30,7 +32,7 @@ export function ToastStack() {
               <span className="toast-title">{toast.title}</span>
               {toast.message && <span className="toast-message">{toast.message}</span>}
             </div>
-            <button className="btn btn-ghost btn-icon btn-sm" onClick={() => dismissToast(toast.id)} aria-label="Жабуу">
+            <button className="btn btn-ghost btn-icon btn-sm" onClick={() => dismissToast(toast.id)} aria-label={t("common.close")}>
               <X size={16} />
             </button>
           </div>

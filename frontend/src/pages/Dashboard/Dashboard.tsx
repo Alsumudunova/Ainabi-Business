@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Area,
   AreaChart,
@@ -24,14 +25,8 @@ import * as dashboardService from "../../services/dashboard.service";
 import type { DashboardRange, DashboardSummary, LowStockProduct, SalesDynamicsPoint, TopProduct } from "../../types";
 import "../../layouts/layout.css";
 
-const RANGE_OPTIONS: { value: DashboardRange; label: string }[] = [
-  { value: "today", label: "Бүгүн" },
-  { value: "7d", label: "7 күн" },
-  { value: "30d", label: "30 күн" },
-  { value: "month", label: "Бул ай" },
-];
-
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { session } = useAuth();
   const navigate = useNavigate();
   const [range, setRange] = useState<DashboardRange>("today");
@@ -40,6 +35,13 @@ export default function Dashboard() {
   const [topProducts, setTopProducts] = useState<TopProduct[] | null>(null);
   const [lowStock, setLowStock] = useState<LowStockProduct[] | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const RANGE_OPTIONS: { value: DashboardRange; label: string }[] = [
+    { value: "today", label: t("dashboard.range.today") },
+    { value: "7d", label: t("dashboard.range.7d") },
+    { value: "30d", label: t("dashboard.range.30d") },
+    { value: "month", label: t("dashboard.range.month") },
+  ];
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +72,7 @@ export default function Dashboard() {
           <h1 className="page-title">
             {getGreeting()}, {session?.user.name.split(" ")[0]} 👋
           </h1>
-          <p className="page-subtitle">Бизнесиңиздин {range === "today" ? "бүгүнкү" : "тандалган мезгилдин"} көрсөткүчтөрү</p>
+          <p className="page-subtitle">{range === "today" ? t("dashboard.subtitleToday") : t("dashboard.subtitlePeriod")}</p>
         </div>
         <div className="tabs">
           {RANGE_OPTIONS.map((opt) => (
@@ -86,12 +88,12 @@ export default function Dashboard() {
           Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} height={132} radius="16px" />)
         ) : (
           <>
-            <KpiCard index={0} label="Сатуу" value={formatMoney(summary.kpi.revenue.value)} changePercent={summary.kpi.revenue.changePercent} icon={Banknote} accent="primary" />
-            <KpiCard index={1} label="Таза пайда" value={formatMoney(summary.kpi.netProfit.value)} changePercent={summary.kpi.netProfit.changePercent} icon={TrendingUp} accent="success" />
-            <KpiCard index={2} label="Сатуулар" value={formatNumber(summary.kpi.salesCount.value)} changePercent={summary.kpi.salesCount.changePercent} icon={ShoppingBag} accent="primary" />
-            <KpiCard index={3} label="Орточо чек" value={formatMoney(summary.kpi.avgCheck.value)} changePercent={summary.kpi.avgCheck.changePercent} icon={Receipt} accent="primary" />
-            <KpiCard index={4} label="Складдагы товар" value={`${formatNumber(summary.kpi.stockQuantity.value)} даана`} icon={PackageSearch} accent="warning" />
-            <KpiCard index={5} label="Карыздар" value={formatMoney(summary.kpi.totalDebt.value)} icon={Wallet} accent="danger" />
+            <KpiCard index={0} label={t("dashboard.kpi.revenue")} value={formatMoney(summary.kpi.revenue.value)} changePercent={summary.kpi.revenue.changePercent} icon={Banknote} accent="primary" />
+            <KpiCard index={1} label={t("dashboard.kpi.netProfit")} value={formatMoney(summary.kpi.netProfit.value)} changePercent={summary.kpi.netProfit.changePercent} icon={TrendingUp} accent="success" />
+            <KpiCard index={2} label={t("dashboard.kpi.salesCount")} value={formatNumber(summary.kpi.salesCount.value)} changePercent={summary.kpi.salesCount.changePercent} icon={ShoppingBag} accent="primary" />
+            <KpiCard index={3} label={t("dashboard.kpi.avgCheck")} value={formatMoney(summary.kpi.avgCheck.value)} changePercent={summary.kpi.avgCheck.changePercent} icon={Receipt} accent="primary" />
+            <KpiCard index={4} label={t("dashboard.kpi.stockQuantity")} value={t("dashboard.kpi.stockUnit", { count: formatNumber(summary.kpi.stockQuantity.value) })} icon={PackageSearch} accent="warning" />
+            <KpiCard index={5} label={t("dashboard.kpi.totalDebt")} value={formatMoney(summary.kpi.totalDebt.value)} icon={Wallet} accent="danger" />
           </>
         )}
       </div>
@@ -100,8 +102,8 @@ export default function Dashboard() {
         <div className="card animate-in" style={{ animationDelay: "0ms" }}>
           <div className="card-header">
             <div>
-              <h2 className="card-title">Сатуу динамикасы</h2>
-              <p className="card-subtitle">Акыркы 7 күн ичиндеги сатуулар</p>
+              <h2 className="card-title">{t("dashboard.salesDynamics.title")}</h2>
+              <p className="card-subtitle">{t("dashboard.salesDynamics.subtitle")}</p>
             </div>
           </div>
           <div className="card-pad" style={{ paddingTop: "var(--space-4)" }}>
@@ -123,7 +125,7 @@ export default function Dashboard() {
                     formatter={(value: number) => formatMoney(value)}
                     contentStyle={{ borderRadius: 12, border: "1px solid var(--color-border)", boxShadow: "var(--shadow-md)" }}
                   />
-                  <Area type="monotone" dataKey="sales" name="Сатуу" stroke="var(--color-primary-600)" strokeWidth={2.5} fill="url(#salesFill)" />
+                  <Area type="monotone" dataKey="sales" name={t("dashboard.salesDynamics.seriesName")} stroke="var(--color-primary-600)" strokeWidth={2.5} fill="url(#salesFill)" />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -133,8 +135,8 @@ export default function Dashboard() {
         <div className="card animate-in" style={{ animationDelay: "60ms" }}>
           <div className="card-header">
             <div>
-              <h2 className="card-title">Аз калган товарлар</h2>
-              <p className="card-subtitle">Складды толуктоо убактысы</p>
+              <h2 className="card-title">{t("dashboard.lowStock.title")}</h2>
+              <p className="card-subtitle">{t("dashboard.lowStock.subtitle")}</p>
             </div>
           </div>
           {loading || !lowStock ? (
@@ -143,7 +145,7 @@ export default function Dashboard() {
             </div>
           ) : lowStock.length === 0 ? (
             <div className="card-pad">
-              <EmptyState icon={<PackageSearch size={26} />} title="Бардык товар жетиштүү" subtitle="Азырынча аз калган товар жок." />
+              <EmptyState icon={<PackageSearch size={26} />} title={t("dashboard.lowStock.allGood")} subtitle={t("dashboard.lowStock.allGoodSubtitle")} />
             </div>
           ) : (
             <>
@@ -153,19 +155,19 @@ export default function Dashboard() {
                     <div className="stack gap-1">
                       <span style={{ fontWeight: 600 }}>{p.name}</span>
                       <span className="text-muted" style={{ fontSize: "var(--font-size-xs)" }}>
-                        {formatNumber(p.quantity)} {unitLabel(p.unit)} калды
+                        {formatNumber(p.quantity)} {unitLabel(p.unit)} {t("dashboard.lowStock.left")}
                       </span>
                     </div>
                     <span className={`badge ${p.status === "OUT" ? "badge-danger pulse-danger" : "badge-warning"}`}>
                       <AlertTriangle size={12} />
-                      {p.status === "OUT" ? "Бүттү" : "Аз калды"}
+                      {p.status === "OUT" ? t("dashboard.lowStock.out") : t("dashboard.lowStock.low")}
                     </span>
                   </div>
                 ))}
               </div>
               <div className="card-pad" style={{ paddingTop: "var(--space-4)" }}>
                 <button className="btn btn-secondary btn-block" onClick={() => navigate("/stock")}>
-                  Складды толуктоо
+                  {t("dashboard.lowStock.goToStock")}
                 </button>
               </div>
             </>
@@ -177,8 +179,8 @@ export default function Dashboard() {
         <div className="card animate-in" style={{ animationDelay: "120ms" }}>
           <div className="card-header">
             <div>
-              <h2 className="card-title">Эң көп сатылган товарлар</h2>
-              <p className="card-subtitle">Тандалган мезгил ичинде</p>
+              <h2 className="card-title">{t("dashboard.topProducts.title")}</h2>
+              <p className="card-subtitle">{t("dashboard.topProducts.subtitle")}</p>
             </div>
           </div>
           {loading || !topProducts ? (
@@ -187,16 +189,16 @@ export default function Dashboard() {
             </div>
           ) : topProducts.length === 0 ? (
             <div className="card-pad">
-              <EmptyState icon={<ShoppingBag size={26} />} title="Сатуулар табылган жок" subtitle="Тандалган мезгилде сатуу болгон эмес." />
+              <EmptyState icon={<ShoppingBag size={26} />} title={t("dashboard.topProducts.empty")} subtitle={t("dashboard.topProducts.emptySubtitle")} />
             </div>
           ) : (
             <div className="table-wrap">
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Товар</th>
-                    <th className="table-cell-num">Сатылды</th>
-                    <th className="table-cell-num">Киреше</th>
+                    <th>{t("dashboard.topProducts.product")}</th>
+                    <th className="table-cell-num">{t("dashboard.topProducts.sold")}</th>
+                    <th className="table-cell-num">{t("dashboard.topProducts.revenue")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -216,8 +218,8 @@ export default function Dashboard() {
         <div className="card animate-in" style={{ animationDelay: "180ms" }}>
           <div className="card-header">
             <div>
-              <h2 className="card-title">Киреше vs Чыгым</h2>
-              <p className="card-subtitle">Акыркы 7 күн</p>
+              <h2 className="card-title">{t("dashboard.incomeExpense.title")}</h2>
+              <p className="card-subtitle">{t("dashboard.incomeExpense.subtitle")}</p>
             </div>
           </div>
           <div className="card-pad" style={{ paddingTop: "var(--space-4)" }}>
@@ -231,8 +233,8 @@ export default function Dashboard() {
                   <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "var(--color-text-muted)" }} width={56} tickFormatter={(v) => formatNumber(v)} />
                   <Tooltip formatter={(value: number) => formatMoney(value)} contentStyle={{ borderRadius: 12, border: "1px solid var(--color-border)" }} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="sales" name="Киреше" fill="var(--color-primary-500)" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="expenses" name="Чыгым" fill="var(--color-danger-text)" radius={[6, 6, 0, 0]} opacity={0.75} />
+                  <Bar dataKey="sales" name={t("dashboard.incomeExpense.income")} fill="var(--color-primary-500)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="expenses" name={t("dashboard.incomeExpense.expense")} fill="var(--color-danger-text)" radius={[6, 6, 0, 0]} opacity={0.75} />
                 </BarChart>
               </ResponsiveContainer>
             )}

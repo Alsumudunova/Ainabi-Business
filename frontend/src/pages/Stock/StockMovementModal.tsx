@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal } from "../../components/ui/Modal";
 import type { Product, StockMovementType } from "../../types";
 
@@ -17,19 +18,20 @@ interface StockMovementModalProps {
   }) => Promise<void>;
 }
 
-const TYPE_OPTIONS: { value: Exclude<StockMovementType, "SALE">; label: string }[] = [
-  { value: "IN", label: "Киреше (жеткирүү)" },
-  { value: "OUT", label: "Чыгаша" },
-  { value: "WRITE_OFF", label: "Списание" },
-  { value: "ADJUSTMENT", label: "Оңдоо (инвентаризация)" },
-];
-
 export function StockMovementModal({ open, onClose, products, defaultType, submitting, onSubmit }: StockMovementModalProps) {
+  const { t } = useTranslation();
   const [productId, setProductId] = useState("");
   const [type, setType] = useState<Exclude<StockMovementType, "SALE">>(defaultType);
   const [quantity, setQuantity] = useState("");
   const [purchasePrice, setPurchasePrice] = useState("");
   const [comment, setComment] = useState("");
+
+  const TYPE_OPTIONS: { value: Exclude<StockMovementType, "SALE">; label: string }[] = [
+    { value: "IN", label: t("stock.modal.types.IN") },
+    { value: "OUT", label: t("stock.modal.types.OUT") },
+    { value: "WRITE_OFF", label: t("stock.modal.types.WRITE_OFF") },
+    { value: "ADJUSTMENT", label: t("stock.modal.types.ADJUSTMENT") },
+  ];
 
   useEffect(() => {
     if (open) {
@@ -56,10 +58,10 @@ export function StockMovementModal({ open, onClose, products, defaultType, submi
   return (
     <Modal open={open} onClose={onClose}>
       <form className="stack gap-4" onSubmit={handleSubmit}>
-        <h2 className="card-title">Складга кыймыл кошуу</h2>
+        <h2 className="card-title">{t("stock.modal.title")}</h2>
 
         <div className="field">
-          <label className="field-label">Аракет түрү</label>
+          <label className="field-label">{t("stock.modal.actionType")}</label>
           <select className="select" value={type} onChange={(e) => setType(e.target.value as Exclude<StockMovementType, "SALE">)}>
             {TYPE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -70,12 +72,12 @@ export function StockMovementModal({ open, onClose, products, defaultType, submi
         </div>
 
         <div className="field">
-          <label className="field-label">Товар</label>
+          <label className="field-label">{t("stock.modal.product")}</label>
           <select className="select" value={productId} onChange={(e) => setProductId(e.target.value)} required>
-            <option value="">Товарды тандаңыз</option>
+            <option value="">{t("stock.modal.productPlaceholder")}</option>
             {products.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name} (учурда: {p.quantity})
+                {p.name} ({t("stock.modal.productCurrent", { qty: p.quantity })})
               </option>
             ))}
           </select>
@@ -83,28 +85,28 @@ export function StockMovementModal({ open, onClose, products, defaultType, submi
 
         <div className="form-grid">
           <div className="field">
-            <label className="field-label">Саны</label>
+            <label className="field-label">{t("stock.modal.quantity")}</label>
             <input type="number" min={0.001} step="0.001" className="input" value={quantity} onChange={(e) => setQuantity(e.target.value)} required />
           </div>
           {type === "IN" && (
             <div className="field">
-              <label className="field-label">Сатып алуу баасы</label>
-              <input type="number" min={0} step="0.01" className="input" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} placeholder="Сом" />
+              <label className="field-label">{t("stock.modal.purchasePrice")}</label>
+              <input type="number" min={0} step="0.01" className="input" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} placeholder={t("stock.modal.pricePlaceholder")} />
             </div>
           )}
         </div>
 
         <div className="field">
-          <label className="field-label">Жеткирүүчү / комментарий</label>
-          <input className="input" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Мисалы: ОсОО Example" />
+          <label className="field-label">{t("stock.modal.supplierComment")}</label>
+          <input className="input" value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t("stock.modal.commentPlaceholder")} />
         </div>
 
         <div className="row gap-3" style={{ justifyContent: "flex-end" }}>
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
-            Жокко чыгаруу
+            {t("common.cancel")}
           </button>
           <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? "Сакталууда..." : "Сактоо"}
+            {submitting ? t("common.saving") : t("common.save")}
           </button>
         </div>
       </form>

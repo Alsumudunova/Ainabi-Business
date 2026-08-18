@@ -1,5 +1,6 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { ToastStack } from "./components/ui/ToastStack";
@@ -29,9 +30,10 @@ const Support = lazy(() => import("./pages/Support/Support"));
 const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 function PageFallback() {
+  const { t } = useTranslation();
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh", color: "var(--color-text-muted)" }}>
-      Жүктөлүүдө...
+      {t("common.loading")}
     </div>
   );
 }

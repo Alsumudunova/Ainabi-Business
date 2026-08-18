@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Phone, Plus, Search, SquarePen, Trash2, Truck, Wallet } from "lucide-react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { SkeletonRows } from "../../components/ui/Skeleton";
@@ -14,6 +15,7 @@ import { formatDate, formatMoney } from "../../utils/format";
 import type { Supplier } from "../../types";
 
 export default function Suppliers() {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [suppliers, setSuppliers] = useState<Supplier[] | null>(null);
@@ -31,9 +33,9 @@ export default function Suppliers() {
     supplierService
       .listSuppliers(debouncedSearch || undefined)
       .then(setSuppliers)
-      .catch((error) => showToast({ variant: "error", title: "Жүктөлгөн жок", message: extractErrorMessage(error) }));
+      .catch((error) => showToast({ variant: "error", title: t("suppliers.loadFailed"), message: extractErrorMessage(error) }));
     supplierService.getSupplierSummary().then(setSummary).catch(() => undefined);
-  }, [debouncedSearch, showToast]);
+  }, [debouncedSearch, showToast, t]);
 
   useEffect(() => {
     load();
@@ -45,16 +47,16 @@ export default function Suppliers() {
       const payload = { name: values.name, phone: values.phone || null, address: values.address || null };
       if (editing) {
         await supplierService.updateSupplier(editing.id, payload);
-        showToast({ variant: "success", title: "Жеткирүүчү өзгөртүлдү" });
+        showToast({ variant: "success", title: t("suppliers.saved") });
       } else {
         await supplierService.createSupplier(payload);
-        showToast({ variant: "success", title: "Жеткирүүчү кошулду" });
+        showToast({ variant: "success", title: t("suppliers.created") });
       }
       setDrawerOpen(false);
       setEditing(null);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Сакталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.saveFailed"), message: extractErrorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -65,11 +67,11 @@ export default function Suppliers() {
     setDeleting(true);
     try {
       await supplierService.deleteSupplier(deleteTarget.id);
-      showToast({ variant: "success", title: "Жеткирүүчү өчүрүлдү" });
+      showToast({ variant: "success", title: t("suppliers.deleted") });
       setDeleteTarget(null);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Өчүрүлгөн жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.deleteFailed"), message: extractErrorMessage(error) });
     } finally {
       setDeleting(false);
     }
@@ -79,8 +81,8 @@ export default function Suppliers() {
     <div className="stack gap-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Жеткирүүчүлөр</h1>
-          <p className="page-subtitle">Жеткирүүчүлөрдү жана аларга карызыңызды башкарыңыз</p>
+          <h1 className="page-title">{t("suppliers.title")}</h1>
+          <p className="page-subtitle">{t("suppliers.subtitle")}</p>
         </div>
         <button
           className="btn btn-primary"
@@ -90,7 +92,7 @@ export default function Suppliers() {
           }}
         >
           <Plus size={18} />
-          Жеткирүүчү кошуу
+          {t("suppliers.add")}
         </button>
       </div>
 
@@ -99,7 +101,7 @@ export default function Suppliers() {
           <Wallet size={24} />
         </div>
         <div className="stack gap-1">
-          <span style={{ opacity: 0.85, fontSize: "var(--font-size-sm)", fontWeight: 600 }}>Жеткирүүчүлөргө жалпы карыз</span>
+          <span style={{ opacity: 0.85, fontSize: "var(--font-size-sm)", fontWeight: 600 }}>{t("suppliers.summaryTotal")}</span>
           <span style={{ fontSize: "var(--font-size-3xl)", fontWeight: 800 }} className="mono-num">
             {summary ? formatMoney(summary.totalOutstanding) : "—"}
           </span>
@@ -110,7 +112,7 @@ export default function Suppliers() {
         <div className="filter-bar">
           <div className="input-with-icon">
             <Search size={16} />
-            <input className="input" placeholder="Жеткирүүчү же телефон боюнча издөө" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input className="input" placeholder={t("suppliers.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
         </div>
 
@@ -121,11 +123,11 @@ export default function Suppliers() {
         ) : suppliers.length === 0 ? (
           <EmptyState
             icon={<Truck size={26} />}
-            title="Азырынча жеткирүүчү жок"
-            subtitle="Биринчи жеткирүүчүңүздү кошуп баштаңыз."
+            title={t("suppliers.emptyNone")}
+            subtitle={t("suppliers.emptyNoneSubtitle")}
             action={
               <button className="btn btn-primary" style={{ marginTop: "var(--space-2)" }} onClick={() => setDrawerOpen(true)}>
-                <Plus size={16} /> Жеткирүүчү кошуу
+                <Plus size={16} /> {t("suppliers.add")}
               </button>
             }
           />
@@ -134,11 +136,11 @@ export default function Suppliers() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Аты</th>
-                  <th>Телефон</th>
-                  <th className="table-cell-num">Жалпы алынган товар</th>
-                  <th className="table-cell-num">Карыз</th>
-                  <th>Акыркы жеткирүү</th>
+                  <th>{t("suppliers.table.name")}</th>
+                  <th>{t("suppliers.table.phone")}</th>
+                  <th className="table-cell-num">{t("suppliers.table.totalPurchased")}</th>
+                  <th className="table-cell-num">{t("suppliers.table.debt")}</th>
+                  <th>{t("suppliers.table.lastDelivery")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -186,8 +188,8 @@ export default function Suppliers() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Жеткирүүчүнү өчүрөсүзбү?"
-        description={`"${deleteTarget?.name}" толугу менен өчүрүлөт.`}
+        title={t("suppliers.deleteConfirmTitle")}
+        description={t("suppliers.deleteConfirmDescription", { name: deleteTarget?.name })}
         danger
         loading={deleting}
         onConfirm={handleDelete}

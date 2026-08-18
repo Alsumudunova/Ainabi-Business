@@ -1,6 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import i18n, { LANGUAGE_HEADER, LANGUAGE_STORAGE_KEY } from "../i18n";
 import { emitAuthLogout, tokenStore } from "./tokenStore";
-import { LANGUAGE_HEADER, LANGUAGE_STORAGE_KEY } from "../i18n";
 import type { AuthResponse } from "../types";
 
 // In local dev this stays "/api" and Vite's dev-server proxy forwards it to
@@ -73,12 +73,13 @@ api.interceptors.response.use(
   },
 );
 
-export function extractErrorMessage(error: unknown, fallback = "Ката кетти. Кайра аракет кылыңыз."): string {
+export function extractErrorMessage(error: unknown, fallback?: string): string {
+  const resolvedFallback = fallback ?? i18n.t("common.errorGeneric");
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as { message?: string } | undefined;
     if (data?.message) return data.message;
   }
-  return fallback;
+  return resolvedFallback;
 }
 
 export { refreshAccessToken };

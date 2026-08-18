@@ -1,4 +1,7 @@
-/** Formats a number as Kyrgyz currency, e.g. 12500 -> "12 500 сом". */
+import i18n from "../i18n";
+
+/** Formats a number as Kyrgyz currency, e.g. 12500 -> "12 500 сом". "Сом" is
+ * the currency's own name (KGS) — it doesn't change between ky/ru. */
 export function formatMoney(value: number): string {
   const rounded = Math.round(value);
   return `${rounded.toLocaleString("ru-RU")} сом`;
@@ -23,14 +26,15 @@ export function formatPercent(value: number): string {
   return `${sign}${value}%`;
 }
 
-const UNIT_LABELS: Record<string, string> = {
-  PIECE: "даана",
-  KG: "кг",
-  LITER: "л",
-  METER: "м",
-  PACK: "пачка",
+const UNIT_KEYS: Record<string, string> = {
+  PIECE: "products.units.PIECE",
+  KG: "products.units.KG",
+  LITER: "products.units.LITER",
+  METER: "products.units.METER",
+  PACK: "products.units.PACK",
 };
 
 export function unitLabel(unit: string): string {
-  return UNIT_LABELS[unit] ?? unit;
+  const key = UNIT_KEYS[unit];
+  return key ? i18n.t(key) : unit;
 }

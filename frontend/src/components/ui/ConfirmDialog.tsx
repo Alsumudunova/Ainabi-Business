@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, HelpCircle } from "lucide-react";
 import { Modal } from "./Modal";
 
@@ -17,13 +18,15 @@ export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = "Ооба, ырастоо",
-  cancelLabel = "Жокко чыгаруу",
+  confirmLabel,
+  cancelLabel,
   danger = false,
   loading = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
+
   return (
     <Modal open={open} onClose={onCancel}>
       <div className="stack gap-4">
@@ -36,10 +39,10 @@ export function ConfirmDialog({
         </div>
         <div className="row gap-3" style={{ justifyContent: "flex-end" }}>
           <button className="btn btn-secondary" onClick={onCancel} disabled={loading}>
-            {cancelLabel}
+            {cancelLabel ?? t("common.cancel")}
           </button>
           <button className={`btn ${danger ? "btn-danger" : "btn-primary"}`} onClick={onConfirm} disabled={loading}>
-            {loading ? "Күтө туруңуз..." : confirmLabel}
+            {loading ? t("common.confirmLoading") : (confirmLabel ?? t("common.confirmYes"))}
           </button>
         </div>
       </div>

@@ -1,34 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { Drawer } from "../../components/ui/Drawer";
 import type { Category, Product, ProductUnit } from "../../types";
 import { formatMoney } from "../../utils/format";
 import "./Products.css";
-
-const schema = z.object({
-  name: z.string().min(1, "Товар атын жазыңыз"),
-  categoryId: z.string().optional(),
-  sku: z.string().optional(),
-  barcode: z.string().optional(),
-  purchasePrice: z.coerce.number().nonnegative("Сатып алуу баасын жазыңыз"),
-  salePrice: z.coerce.number().nonnegative("Сатуу баасын жазыңыз"),
-  quantity: z.coerce.number().nonnegative(),
-  minQuantity: z.coerce.number().nonnegative(),
-  unit: z.enum(["PIECE", "KG", "LITER", "METER", "PACK"]),
-  imageUrl: z.string().optional(),
-  description: z.string().optional(),
-});
-export type ProductFormValues = z.infer<typeof schema>;
-
-const UNIT_OPTIONS: { value: ProductUnit; label: string }[] = [
-  { value: "PIECE", label: "даана" },
-  { value: "KG", label: "кг" },
-  { value: "LITER", label: "литр" },
-  { value: "METER", label: "метр" },
-  { value: "PACK", label: "пачка" },
-];
 
 interface ProductDrawerProps {
   open: boolean;
@@ -39,7 +17,49 @@ interface ProductDrawerProps {
   submitting: boolean;
 }
 
+export interface ProductFormValues {
+  name: string;
+  categoryId?: string;
+  sku?: string;
+  barcode?: string;
+  purchasePrice: number;
+  salePrice: number;
+  quantity: number;
+  minQuantity: number;
+  unit: ProductUnit;
+  imageUrl?: string;
+  description?: string;
+}
+
 export function ProductDrawer({ open, onClose, onSubmit, categories, product, submitting }: ProductDrawerProps) {
+  const { t } = useTranslation();
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t("products.drawer.nameRequired")),
+        categoryId: z.string().optional(),
+        sku: z.string().optional(),
+        barcode: z.string().optional(),
+        purchasePrice: z.coerce.number().nonnegative(t("products.drawer.purchasePriceRequired")),
+        salePrice: z.coerce.number().nonnegative(t("products.drawer.salePriceRequired")),
+        quantity: z.coerce.number().nonnegative(),
+        minQuantity: z.coerce.number().nonnegative(),
+        unit: z.enum(["PIECE", "KG", "LITER", "METER", "PACK"]),
+        imageUrl: z.string().optional(),
+        description: z.string().optional(),
+      }),
+    [t],
+  );
+
+  const UNIT_OPTIONS: { value: ProductUnit; label: string }[] = [
+    { value: "PIECE", label: t("products.units.PIECE") },
+    { value: "KG", label: t("products.units.KG") },
+    { value: "LITER", label: t("products.units.LITER") },
+    { value: "METER", label: t("products.units.METER") },
+    { value: "PACK", label: t("products.units.PACK") },
+  ];
+
   const {
     register,
     handleSubmit,
@@ -81,31 +101,31 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
     <Drawer
       open={open}
       onClose={onClose}
-      title={product ? "Товарды өзгөртүү" : "Жаңы товар кошуу"}
-      subtitle={product ? product.name : "Товардын толук маалыматын киргизиңиз"}
+      title={product ? t("products.drawer.editTitle") : t("products.drawer.addTitle")}
+      subtitle={product ? product.name : t("products.drawer.addSubtitle")}
       footer={
         <>
           <button className="btn btn-secondary" onClick={onClose} disabled={submitting}>
-            Жокко чыгаруу
+            {t("common.cancel")}
           </button>
           <button className="btn btn-primary" onClick={handleSubmit(onSubmit)} disabled={submitting}>
-            {submitting ? "Сакталууда..." : product ? "Сактоо" : "Товар кошуу"}
+            {submitting ? t("common.saving") : product ? t("common.save") : t("products.drawer.submitAdd")}
           </button>
         </>
       }
     >
       <form className="stack gap-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="field">
-          <label className="field-label">Товар аты</label>
-          <input className={`input ${errors.name ? "has-error" : ""}`} placeholder="Мисалы: Coca-Cola 1L" {...register("name")} />
+          <label className="field-label">{t("products.drawer.name")}</label>
+          <input className={`input ${errors.name ? "has-error" : ""}`} placeholder={t("products.drawer.namePlaceholder")} {...register("name")} />
           {errors.name && <span className="field-error">{errors.name.message}</span>}
         </div>
 
         <div className="form-grid">
           <div className="field">
-            <label className="field-label">Категория</label>
+            <label className="field-label">{t("products.drawer.category")}</label>
             <select className="select" {...register("categoryId")}>
-              <option value="">Категория тандаңыз</option>
+              <option value="">{t("products.drawer.categoryPlaceholder")}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -114,7 +134,7 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
             </select>
           </div>
           <div className="field">
-            <label className="field-label">Өлчөм бирдиги</label>
+            <label className="field-label">{t("products.drawer.unit")}</label>
             <select className="select" {...register("unit")}>
               {UNIT_OPTIONS.map((u) => (
                 <option key={u.value} value={u.value}>
@@ -127,23 +147,23 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
 
         <div className="form-grid">
           <div className="field">
-            <label className="field-label">SKU</label>
+            <label className="field-label">{t("products.drawer.sku")}</label>
             <input className="input" placeholder="SKU-0001" {...register("sku")} />
           </div>
           <div className="field">
-            <label className="field-label">Штрих-код</label>
+            <label className="field-label">{t("products.drawer.barcode")}</label>
             <input className="input" placeholder="4870001234561" {...register("barcode")} />
           </div>
         </div>
 
         <div className="form-grid">
           <div className="field">
-            <label className="field-label">Сатып алуу баасы (сом)</label>
+            <label className="field-label">{t("products.drawer.purchasePrice")}</label>
             <input type="number" step="0.01" className={`input ${errors.purchasePrice ? "has-error" : ""}`} {...register("purchasePrice")} />
             {errors.purchasePrice && <span className="field-error">{errors.purchasePrice.message}</span>}
           </div>
           <div className="field">
-            <label className="field-label">Сатуу баасы (сом)</label>
+            <label className="field-label">{t("products.drawer.salePrice")}</label>
             <input type="number" step="0.01" className={`input ${errors.salePrice ? "has-error" : ""}`} {...register("salePrice")} />
             {errors.salePrice && <span className="field-error">{errors.salePrice.message}</span>}
           </div>
@@ -152,34 +172,34 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
         <div className="margin-preview">
           <div className="margin-preview-item">
             <div className="margin-preview-value">{formatMoney(profit)}</div>
-            <div className="margin-preview-label">Пайда</div>
+            <div className="margin-preview-label">{t("products.drawer.profit")}</div>
           </div>
           <div className="margin-preview-item">
             <div className="margin-preview-value">{margin}%</div>
-            <div className="margin-preview-label">Маржа</div>
+            <div className="margin-preview-label">{t("products.drawer.margin")}</div>
           </div>
         </div>
 
         <div className="form-grid">
           <div className="field">
-            <label className="field-label">{product ? "Учурдагы калдык" : "Баштапкы саны"}</label>
+            <label className="field-label">{product ? t("products.drawer.currentStock") : t("products.drawer.initialStock")}</label>
             <input type="number" step="0.01" className="input" disabled={!!product} {...register("quantity")} />
-            {product && <span className="field-hint">Калдыкты Склад бетинен өзгөртүңүз</span>}
+            {product && <span className="field-hint">{t("products.drawer.stockHint")}</span>}
           </div>
           <div className="field">
-            <label className="field-label">Минималдуу калдык</label>
+            <label className="field-label">{t("products.drawer.minStock")}</label>
             <input type="number" step="0.01" className="input" {...register("minQuantity")} />
           </div>
         </div>
 
         <div className="field">
-          <label className="field-label">Сүрөт (URL)</label>
+          <label className="field-label">{t("products.drawer.imageUrl")}</label>
           <input className="input" placeholder="https://..." {...register("imageUrl")} />
         </div>
 
         <div className="field">
-          <label className="field-label">Описание</label>
-          <textarea className="textarea" placeholder="Кошумча маалымат..." {...register("description")} />
+          <label className="field-label">{t("products.drawer.description")}</label>
+          <textarea className="textarea" placeholder={t("products.drawer.descriptionPlaceholder")} {...register("description")} />
         </div>
       </form>
     </Drawer>

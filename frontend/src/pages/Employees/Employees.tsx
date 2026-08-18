@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Trash2, UserCog } from "lucide-react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { SkeletonRows } from "../../components/ui/Skeleton";
@@ -7,15 +8,17 @@ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { InviteEmployeeModal } from "./InviteEmployeeModal";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
+import { useLabels } from "../../hooks/useLabels";
 import * as employeeService from "../../services/employee.service";
 import { extractErrorMessage } from "../../services/api";
 import { formatDateTime } from "../../utils/format";
-import { employeeStatusLabels, roleLabels } from "../../utils/labels";
 import type { Employee, Role } from "../../types";
 
 export default function Employees() {
+  const { t } = useTranslation();
   const { session } = useAuth();
   const { showToast } = useToast();
+  const labels = useLabels();
   const [employees, setEmployees] = useState<Employee[] | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -29,8 +32,8 @@ export default function Employees() {
     employeeService
       .listEmployees()
       .then(setEmployees)
-      .catch((error) => showToast({ variant: "error", title: "Жүктөлгөн жок", message: extractErrorMessage(error) }));
-  }, [showToast]);
+      .catch((error) => showToast({ variant: "error", title: t("employees.loadFailed"), message: extractErrorMessage(error) }));
+  }, [showToast, t]);
 
   useEffect(() => {
     load();
@@ -40,11 +43,11 @@ export default function Employees() {
     setSubmitting(true);
     try {
       await employeeService.inviteEmployee({ ...values, phone: values.phone || undefined });
-      showToast({ variant: "success", title: "Кызматкер кошулду" });
+      showToast({ variant: "success", title: t("employees.invited") });
       setInviteOpen(false);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Сакталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.saveFailed"), message: extractErrorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -53,20 +56,20 @@ export default function Employees() {
   async function handleStatusToggle(employee: Employee) {
     try {
       await employeeService.updateEmployee(employee.id, { status: employee.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" });
-      showToast({ variant: "success", title: "Статус өзгөртүлдү" });
+      showToast({ variant: "success", title: t("employees.statusChanged") });
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Өзгөртүлгөн жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.changeFailed"), message: extractErrorMessage(error) });
     }
   }
 
   async function handleRoleChange(employee: Employee, role: Exclude<Role, "OWNER">) {
     try {
       await employeeService.updateEmployee(employee.id, { role });
-      showToast({ variant: "success", title: "Роль өзгөртүлдү" });
+      showToast({ variant: "success", title: t("employees.roleChanged") });
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Өзгөртүлгөн жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.changeFailed"), message: extractErrorMessage(error) });
     }
   }
 
@@ -75,11 +78,11 @@ export default function Employees() {
     setDeleting(true);
     try {
       await employeeService.deleteEmployee(deleteTarget.id);
-      showToast({ variant: "success", title: "Кызматкер өчүрүлдү" });
+      showToast({ variant: "success", title: t("employees.deleted") });
       setDeleteTarget(null);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Өчүрүлгөн жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.deleteFailed"), message: extractErrorMessage(error) });
     } finally {
       setDeleting(false);
     }
@@ -89,13 +92,13 @@ export default function Employees() {
     <div className="stack gap-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Кызматкерлер</h1>
-          <p className="page-subtitle">Командаңызды жана алардын укуктарын башкарыңыз</p>
+          <h1 className="page-title">{t("employees.title")}</h1>
+          <p className="page-subtitle">{t("employees.subtitle")}</p>
         </div>
         {canManage && (
           <button className="btn btn-primary" onClick={() => setInviteOpen(true)}>
             <Plus size={18} />
-            Кызматкер кошуу
+            {t("employees.add")}
           </button>
         )}
       </div>
@@ -106,17 +109,17 @@ export default function Employees() {
             <SkeletonRows rows={5} height={52} />
           </div>
         ) : employees.length === 0 ? (
-          <EmptyState icon={<UserCog size={26} />} title="Кызматкер жок" subtitle="Командаңызга кызматкер кошуңуз." />
+          <EmptyState icon={<UserCog size={26} />} title={t("employees.empty")} subtitle={t("employees.emptySubtitle")} />
         ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Аты</th>
-                  <th>Байланыш</th>
-                  <th>Роль</th>
-                  <th>Статус</th>
-                  <th>Акыркы кирүү</th>
+                  <th>{t("employees.table.name")}</th>
+                  <th>{t("employees.table.contact")}</th>
+                  <th>{t("employees.table.role")}</th>
+                  <th>{t("employees.table.status")}</th>
+                  <th>{t("employees.table.lastLogin")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -136,23 +139,23 @@ export default function Employees() {
                           value={e.role}
                           onChange={(ev) => handleRoleChange(e, ev.target.value as Exclude<Role, "OWNER">)}
                         >
-                          <option value="ADMIN">Админ</option>
-                          <option value="CASHIER">Кассир</option>
+                          <option value="ADMIN">{labels.role.ADMIN}</option>
+                          <option value="CASHIER">{labels.role.CASHIER}</option>
                         </select>
                       ) : (
-                        <Badge variant={e.role === "OWNER" ? "info" : "neutral"}>{roleLabels[e.role]}</Badge>
+                        <Badge variant={e.role === "OWNER" ? "info" : "neutral"}>{labels.role[e.role]}</Badge>
                       )}
                     </td>
                     <td>
                       {canManage && e.role !== "OWNER" ? (
                         <button className={`badge ${e.status === "ACTIVE" ? "badge-success" : "badge-neutral"}`} style={{ cursor: "pointer", border: "none" }} onClick={() => handleStatusToggle(e)}>
-                          {employeeStatusLabels[e.status]}
+                          {labels.employeeStatus[e.status]}
                         </button>
                       ) : (
-                        <Badge variant={e.status === "ACTIVE" ? "success" : "neutral"}>{employeeStatusLabels[e.status]}</Badge>
+                        <Badge variant={e.status === "ACTIVE" ? "success" : "neutral"}>{labels.employeeStatus[e.status]}</Badge>
                       )}
                     </td>
-                    <td className="text-muted">{e.lastLoginAt ? formatDateTime(e.lastLoginAt) : "Кире элек"}</td>
+                    <td className="text-muted">{e.lastLoginAt ? formatDateTime(e.lastLoginAt) : t("employees.neverLoggedIn")}</td>
                     <td>
                       {canManage && e.role !== "OWNER" && (
                         <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setDeleteTarget(e)}>
@@ -172,8 +175,8 @@ export default function Employees() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Кызматкерди өчүрөсүзбү?"
-        description={`"${deleteTarget?.name}" системага кире албай калат.`}
+        title={t("employees.deleteConfirmTitle")}
+        description={t("employees.deleteConfirmDescription", { name: deleteTarget?.name })}
         danger
         loading={deleting}
         onConfirm={handleDelete}

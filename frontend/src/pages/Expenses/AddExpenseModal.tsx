@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal } from "../../components/ui/Modal";
-import { expenseCategoryLabels } from "../../utils/labels";
+import { useLabels } from "../../hooks/useLabels";
 import type { ExpenseCategory } from "../../types";
 
 interface AddExpenseModalProps {
@@ -13,6 +14,8 @@ interface AddExpenseModalProps {
 const CATEGORY_ORDER: ExpenseCategory[] = ["RENT", "SALARY", "PURCHASE", "TRANSPORT", "UTILITIES", "ADVERTISING", "OTHER"];
 
 export function AddExpenseModal({ open, onClose, submitting, onSubmit }: AddExpenseModalProps) {
+  const { t } = useTranslation();
+  const labels = useLabels();
   const [category, setCategory] = useState<ExpenseCategory>("OTHER");
   const [amount, setAmount] = useState("");
   const [comment, setComment] = useState("");
@@ -34,35 +37,35 @@ export function AddExpenseModal({ open, onClose, submitting, onSubmit }: AddExpe
   return (
     <Modal open={open} onClose={onClose}>
       <form className="stack gap-4" onSubmit={handleSubmit}>
-        <h2 className="card-title">Чыгым кошуу</h2>
+        <h2 className="card-title">{t("expenses.modal.title")}</h2>
 
         <div className="field">
-          <label className="field-label">Категория</label>
+          <label className="field-label">{t("expenses.modal.category")}</label>
           <select className="select" value={category} onChange={(e) => setCategory(e.target.value as ExpenseCategory)}>
             {CATEGORY_ORDER.map((c) => (
               <option key={c} value={c}>
-                {expenseCategoryLabels[c]}
+                {labels.expenseCategory[c]}
               </option>
             ))}
           </select>
         </div>
 
         <div className="field">
-          <label className="field-label">Сумма (сом)</label>
+          <label className="field-label">{t("expenses.modal.amount")}</label>
           <input type="number" min={1} step="0.01" className="input" value={amount} onChange={(e) => setAmount(e.target.value)} required />
         </div>
 
         <div className="field">
-          <label className="field-label">Комментарий</label>
-          <textarea className="textarea" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Кошумча маалымат" />
+          <label className="field-label">{t("expenses.modal.comment")}</label>
+          <textarea className="textarea" value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t("expenses.modal.commentPlaceholder")} />
         </div>
 
         <div className="row gap-3" style={{ justifyContent: "flex-end" }}>
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
-            Жокко чыгаруу
+            {t("common.cancel")}
           </button>
           <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? "Сакталууда..." : "Кошуу"}
+            {submitting ? t("common.saving") : t("common.add")}
           </button>
         </div>
       </form>

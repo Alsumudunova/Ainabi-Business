@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/useToast";
 import { extractErrorMessage } from "../services/api";
@@ -19,6 +20,7 @@ interface GoogleSignInButtonProps {
  * component never sees or trusts anything beyond that token.
  */
 export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
+  const { t } = useTranslation();
   const { loginWithGoogle } = useAuth();
   const { showToast } = useToast();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,7 +36,7 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
         await loginWithGoogle(response.credential);
         if (!cancelled) onSuccess?.();
       } catch (error) {
-        showToast({ variant: "error", title: "Google менен кирүү мүмкүн болбоду", message: extractErrorMessage(error) });
+        showToast({ variant: "error", title: t("common.googleErrorTitle"), message: extractErrorMessage(error) });
       }
     }
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CircleDollarSign, Phone, Plus, Wallet } from "lucide-react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { SkeletonRows } from "../../components/ui/Skeleton";
@@ -6,16 +7,18 @@ import { Badge } from "../../components/ui/Badge";
 import { AddDebtModal } from "./AddDebtModal";
 import { DebtPaymentModal } from "./DebtPaymentModal";
 import { useToast } from "../../hooks/useToast";
+import { useLabels } from "../../hooks/useLabels";
 import * as debtService from "../../services/debt.service";
 import * as customerService from "../../services/customer.service";
 import { extractErrorMessage } from "../../services/api";
 import { formatDate, formatMoney } from "../../utils/format";
-import { debtStatusLabels } from "../../utils/labels";
 import type { Customer, Debt, PaymentMethod } from "../../types";
 import "./Debts.css";
 
 export default function Debts() {
+  const { t } = useTranslation();
   const { showToast } = useToast();
+  const labels = useLabels();
   const [debts, setDebts] = useState<Debt[] | null>(null);
   const [summary, setSummary] = useState<debtService.DebtSummary | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -30,9 +33,9 @@ export default function Debts() {
     debtService
       .listDebts(showOnlyOpen ? "OPEN" : "ALL")
       .then(setDebts)
-      .catch((error) => showToast({ variant: "error", title: "Жүктөлгөн жок", message: extractErrorMessage(error) }));
+      .catch((error) => showToast({ variant: "error", title: t("debts.loadFailed"), message: extractErrorMessage(error) }));
     debtService.getDebtSummary().then(setSummary).catch(() => undefined);
-  }, [showOnlyOpen, showToast]);
+  }, [showOnlyOpen, showToast, t]);
 
   useEffect(() => {
     load();
@@ -46,11 +49,11 @@ export default function Debts() {
     setAddSubmitting(true);
     try {
       await debtService.createDebt(values);
-      showToast({ variant: "success", title: "Карыз кошулду" });
+      showToast({ variant: "success", title: t("debts.added") });
       setAddOpen(false);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Сакталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.saveFailed"), message: extractErrorMessage(error) });
     } finally {
       setAddSubmitting(false);
     }
@@ -61,11 +64,11 @@ export default function Debts() {
     setPaySubmitting(true);
     try {
       await debtService.addDebtPayment(payTarget.id, values);
-      showToast({ variant: "success", title: "Карыз төлөмү кабыл алынды", message: formatMoney(values.amount) });
+      showToast({ variant: "success", title: t("debts.paymentAcceptedTitle"), message: formatMoney(values.amount) });
       setPayTarget(null);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Кабыл алынган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("debts.paymentNotAcceptedTitle"), message: extractErrorMessage(error) });
     } finally {
       setPaySubmitting(false);
     }
@@ -75,12 +78,12 @@ export default function Debts() {
     <div className="stack gap-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Карыз дептери</h1>
-          <p className="page-subtitle">Кардарлардын карыздарын так көзөмөлдөңүз</p>
+          <h1 className="page-title">{t("debts.title")}</h1>
+          <p className="page-subtitle">{t("debts.subtitle")}</p>
         </div>
         <button className="btn btn-primary" onClick={() => setAddOpen(true)}>
           <Plus size={18} />
-          Карыз кошуу
+          {t("debts.add")}
         </button>
       </div>
 
@@ -92,7 +95,7 @@ export default function Debts() {
           <Wallet size={24} />
         </div>
         <div className="stack gap-1">
-          <span style={{ opacity: 0.85, fontSize: "var(--font-size-sm)", fontWeight: 600 }}>Жалпы карыз</span>
+          <span style={{ opacity: 0.85, fontSize: "var(--font-size-sm)", fontWeight: 600 }}>{t("debts.summaryTotal")}</span>
           <span style={{ fontSize: "var(--font-size-3xl)", fontWeight: 800 }} className="mono-num">
             {summary ? formatMoney(summary.totalOutstanding) : "—"}
           </span>
@@ -100,7 +103,7 @@ export default function Debts() {
         <span className="spacer" />
         {summary && (
           <div className="stack gap-1" style={{ textAlign: "right" }}>
-            <span style={{ opacity: 0.85, fontSize: "var(--font-size-sm)" }}>Ачык карыздар</span>
+            <span style={{ opacity: 0.85, fontSize: "var(--font-size-sm)" }}>{t("debts.summaryOpenCount")}</span>
             <span style={{ fontSize: "var(--font-size-xl)", fontWeight: 700 }}>{summary.openDebts}</span>
           </div>
         )}
@@ -110,10 +113,10 @@ export default function Debts() {
         <div className="filter-bar">
           <div className="tabs">
             <button className={`tab ${showOnlyOpen ? "active" : ""}`} onClick={() => setShowOnlyOpen(true)}>
-              Төлөнө элек
+              {t("debts.tabOpen")}
             </button>
             <button className={`tab ${!showOnlyOpen ? "active" : ""}`} onClick={() => setShowOnlyOpen(false)}>
-              Баары
+              {t("debts.tabAll")}
             </button>
           </div>
         </div>
@@ -123,19 +126,19 @@ export default function Debts() {
             <SkeletonRows rows={5} height={52} />
           </div>
         ) : debts.length === 0 ? (
-          <EmptyState icon={<CircleDollarSign size={26} />} title="Карыз жок" subtitle="Азырынча эч бир кардарда карыз жок." />
+          <EmptyState icon={<CircleDollarSign size={26} />} title={t("debts.empty")} subtitle={t("debts.emptySubtitle")} />
         ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Кардар</th>
-                  <th>Телефон</th>
-                  <th className="table-cell-num">Жалпы</th>
-                  <th className="table-cell-num">Төлөгөн</th>
-                  <th className="table-cell-num">Калган</th>
-                  <th>Статус</th>
-                  <th>Дата</th>
+                  <th>{t("debts.table.customer")}</th>
+                  <th>{t("debts.table.phone")}</th>
+                  <th className="table-cell-num">{t("debts.table.total")}</th>
+                  <th className="table-cell-num">{t("debts.table.paid")}</th>
+                  <th className="table-cell-num">{t("debts.table.remaining")}</th>
+                  <th>{t("debts.table.status")}</th>
+                  <th>{t("debts.table.date")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -156,13 +159,13 @@ export default function Debts() {
                     <td className="table-cell-num">{formatMoney(d.paidAmount)}</td>
                     <td className="table-cell-num" style={{ fontWeight: 700 }}>{formatMoney(d.remainingAmount)}</td>
                     <td>
-                      <Badge variant={d.status === "PAID" ? "success" : d.status === "PARTIAL" ? "warning" : "danger"}>{debtStatusLabels[d.status]}</Badge>
+                      <Badge variant={d.status === "PAID" ? "success" : d.status === "PARTIAL" ? "warning" : "danger"}>{labels.debtStatus[d.status]}</Badge>
                     </td>
                     <td className="text-muted">{formatDate(d.createdAt)}</td>
                     <td>
                       {d.status !== "PAID" && (
                         <button className="btn btn-secondary btn-sm" onClick={() => setPayTarget(d)}>
-                          Төлөм кабыл алуу
+                          {t("debts.acceptPayment")}
                         </button>
                       )}
                     </td>

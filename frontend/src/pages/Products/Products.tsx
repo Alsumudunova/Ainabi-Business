@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Barcode, Package, Plus, Search, SquarePen, Trash2 } from "lucide-react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { SkeletonRows } from "../../components/ui/Skeleton";
@@ -17,6 +18,7 @@ import type { Category, Product } from "../../types";
 import "./Products.css";
 
 export default function Products() {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -51,10 +53,10 @@ export default function Products() {
       setTotal(result.total);
       setTotalPages(result.totalPages);
     } catch (error) {
-      showToast({ variant: "error", title: "Товарларды жүктөө мүмкүн болбоду", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("products.loadFailed"), message: extractErrorMessage(error) });
       setProducts([]);
     }
-  }, [debouncedSearch, categoryId, statusFilter, stockFilter, page, showToast]);
+  }, [debouncedSearch, categoryId, statusFilter, stockFilter, page, showToast, t]);
 
   // Picks up ?q= even when navigating here while already on this page
   // (e.g. a second global-search hit) since React Router won't remount it.
@@ -81,16 +83,16 @@ export default function Products() {
     try {
       if (editing) {
         await productService.updateProduct(editing.id, { ...values, categoryId: values.categoryId || null });
-        showToast({ variant: "success", title: "Товар өзгөртүлдү" });
+        showToast({ variant: "success", title: t("products.saved") });
       } else {
         await productService.createProduct({ ...values, categoryId: values.categoryId || null });
-        showToast({ variant: "success", title: "Товар ийгиликтүү кошулду" });
+        showToast({ variant: "success", title: t("products.created") });
       }
       setDrawerOpen(false);
       setEditing(null);
       loadProducts();
     } catch (error) {
-      showToast({ variant: "error", title: "Сакталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.saveFailed"), message: extractErrorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -101,11 +103,11 @@ export default function Products() {
     setDeleting(true);
     try {
       await productService.deleteProduct(deleteTarget.id);
-      showToast({ variant: "success", title: "Товар өчүрүлдү" });
+      showToast({ variant: "success", title: t("products.deleted") });
       setDeleteTarget(null);
       loadProducts();
     } catch (error) {
-      showToast({ variant: "error", title: "Өчүрүлгөн жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.deleteFailed"), message: extractErrorMessage(error) });
     } finally {
       setDeleting(false);
     }
@@ -117,8 +119,8 @@ export default function Products() {
     <div className="stack gap-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Товарлар</h1>
-          <p className="page-subtitle">Дүкөнүңүздөгү бардык товарларды башкарыңыз</p>
+          <h1 className="page-title">{t("products.title")}</h1>
+          <p className="page-subtitle">{t("products.subtitle")}</p>
         </div>
         <button
           className="btn btn-primary"
@@ -128,7 +130,7 @@ export default function Products() {
           }}
         >
           <Plus size={18} />
-          Товар кошуу
+          {t("products.add")}
         </button>
       </div>
 
@@ -136,10 +138,10 @@ export default function Products() {
         <div className="filter-bar">
           <div className="input-with-icon">
             <Search size={16} />
-            <input className="input" placeholder="Товар же штрих-код издөө" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input className="input" placeholder={t("products.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <select className="select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-            <option value="">Бардык категория</option>
+            <option value="">{t("products.allCategories")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -147,14 +149,14 @@ export default function Products() {
             ))}
           </select>
           <select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as "" | "ACTIVE" | "ARCHIVED")}>
-            <option value="ACTIVE">Бар товарлар</option>
-            <option value="ARCHIVED">Архивдегилер</option>
-            <option value="">Баары</option>
+            <option value="ACTIVE">{t("products.activeOnly")}</option>
+            <option value="ARCHIVED">{t("products.archivedOnly")}</option>
+            <option value="">{t("products.allStatus")}</option>
           </select>
           <select className="select" value={stockFilter} onChange={(e) => setStockFilter(e.target.value as "" | "low" | "out")}>
-            <option value="">Бардык калдык</option>
-            <option value="low">Аз калган</option>
-            <option value="out">Запаста жок</option>
+            <option value="">{t("products.allStock")}</option>
+            <option value="low">{t("products.lowStock")}</option>
+            <option value="out">{t("products.outOfStock")}</option>
           </select>
         </div>
 
@@ -165,8 +167,8 @@ export default function Products() {
         ) : products.length === 0 ? (
           <EmptyState
             icon={<Package size={26} />}
-            title={hasFilters ? "Эч нерсе табылган жок" : "Азырынча товар жок"}
-            subtitle={hasFilters ? "Издөө шарттарын өзгөртүп көрүңүз." : "Биринчи товарыңызды кошуп баштаңыз."}
+            title={hasFilters ? t("products.emptyFiltered") : t("products.emptyNone")}
+            subtitle={hasFilters ? t("products.emptyFilteredSubtitle") : t("products.emptyNoneSubtitle")}
             action={
               !hasFilters && (
                 <button
@@ -177,7 +179,7 @@ export default function Products() {
                     setDrawerOpen(true);
                   }}
                 >
-                  <Plus size={16} /> Товар кошуу
+                  <Plus size={16} /> {t("products.add")}
                 </button>
               )
             }
@@ -188,14 +190,14 @@ export default function Products() {
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Товар</th>
-                    <th>Штрих-код</th>
-                    <th>Категория</th>
-                    <th className="table-cell-num">Сатып алуу</th>
-                    <th className="table-cell-num">Сатуу</th>
-                    <th className="table-cell-num">Пайда</th>
-                    <th className="table-cell-num">Калдык</th>
-                    <th>Статус</th>
+                    <th>{t("products.table.product")}</th>
+                    <th>{t("products.table.barcode")}</th>
+                    <th>{t("products.table.category")}</th>
+                    <th className="table-cell-num">{t("products.table.purchasePrice")}</th>
+                    <th className="table-cell-num">{t("products.table.salePrice")}</th>
+                    <th className="table-cell-num">{t("products.table.profit")}</th>
+                    <th className="table-cell-num">{t("products.table.stock")}</th>
+                    <th>{t("products.table.status")}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -231,20 +233,20 @@ export default function Products() {
                       </td>
                       <td>
                         {p.status === "ARCHIVED" ? (
-                          <Badge variant="neutral">Архивде</Badge>
+                          <Badge variant="neutral">{t("products.statusArchived")}</Badge>
                         ) : p.stockStatus === "OUT" ? (
-                          <Badge variant="danger">Жок</Badge>
+                          <Badge variant="danger">{t("products.statusOut")}</Badge>
                         ) : p.stockStatus === "LOW" ? (
-                          <Badge variant="warning">Аз калды</Badge>
+                          <Badge variant="warning">{t("products.statusLow")}</Badge>
                         ) : (
-                          <Badge variant="success">Бар</Badge>
+                          <Badge variant="success">{t("products.statusOk")}</Badge>
                         )}
                       </td>
                       <td>
                         <div className="table-actions">
                           <button
                             className="btn btn-ghost btn-icon btn-sm"
-                            title="Өзгөртүү"
+                            title={t("products.editTooltip")}
                             onClick={() => {
                               setEditing(p);
                               setDrawerOpen(true);
@@ -252,7 +254,7 @@ export default function Products() {
                           >
                             <SquarePen size={16} />
                           </button>
-                          <button className="btn btn-ghost btn-icon btn-sm" title="Өчүрүү" onClick={() => setDeleteTarget(p)}>
+                          <button className="btn btn-ghost btn-icon btn-sm" title={t("products.deleteTooltip")} onClick={() => setDeleteTarget(p)}>
                             <Trash2 size={16} color="var(--color-danger-text)" />
                           </button>
                         </div>
@@ -278,8 +280,8 @@ export default function Products() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Товарды өчүрөсүзбү?"
-        description={`"${deleteTarget?.name}" товары архивге жөнөтүлөт жана тизмеде көрүнбөй калат.`}
+        title={t("products.deleteConfirmTitle")}
+        description={t("products.deleteConfirmDescription", { name: deleteTarget?.name })}
         danger
         loading={deleting}
         onConfirm={handleDelete}

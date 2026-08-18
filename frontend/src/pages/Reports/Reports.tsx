@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Award, Download, Percent, Receipt, ShoppingBag, TrendingUp, Trophy, Wallet } from "lucide-react";
 import { KpiCard } from "../../components/ui/KpiCard";
@@ -10,17 +11,10 @@ import type { ReportData, ReportPreset } from "../../services/report.service";
 import { extractErrorMessage } from "../../services/api";
 import { formatDate, formatMoney, formatNumber } from "../../utils/format";
 
-const PRESETS: { value: ReportPreset; label: string }[] = [
-  { value: "today", label: "Бүгүн" },
-  { value: "yesterday", label: "Кечээ" },
-  { value: "7d", label: "7 күн" },
-  { value: "30d", label: "30 күн" },
-  { value: "month", label: "Бул ай" },
-  { value: "prevMonth", label: "Өткөн ай" },
-  { value: "custom", label: "Тандалма" },
-];
+const PRESET_ORDER: ReportPreset[] = ["today", "yesterday", "7d", "30d", "month", "prevMonth", "custom"];
 
 export default function Reports() {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const [preset, setPreset] = useState<ReportPreset>("7d");
   const [from, setFrom] = useState("");
@@ -34,15 +28,15 @@ export default function Reports() {
     reportService
       .getReport(preset, preset === "custom" ? from : undefined, preset === "custom" ? to : undefined)
       .then(setReport)
-      .catch((error) => showToast({ variant: "error", title: "Отчет жүктөлгөн жок", message: extractErrorMessage(error) }));
-  }, [preset, from, to, showToast]);
+      .catch((error) => showToast({ variant: "error", title: t("reports.reportLoadFailed"), message: extractErrorMessage(error) }));
+  }, [preset, from, to, showToast, t]);
 
   async function handleExport() {
     setExporting(true);
     try {
       await reportService.downloadReportCsv(preset, preset === "custom" ? from : undefined, preset === "custom" ? to : undefined);
     } catch (error) {
-      showToast({ variant: "error", title: "Экспорт болгон жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("reports.exportFailed"), message: extractErrorMessage(error) });
     } finally {
       setExporting(false);
     }
@@ -52,21 +46,21 @@ export default function Reports() {
     <div className="stack gap-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Отчеттор</h1>
-          <p className="page-subtitle">Бизнесиңиздин жыйынтыктарын терең талдаңыз</p>
+          <h1 className="page-title">{t("reports.title")}</h1>
+          <p className="page-subtitle">{t("reports.subtitle")}</p>
         </div>
         <button className="btn btn-secondary" onClick={handleExport} disabled={exporting || !report}>
           <Download size={16} />
-          {exporting ? "Экспортталууда..." : "CSV экспорт"}
+          {exporting ? t("reports.exporting") : t("reports.export")}
         </button>
       </div>
 
       <div className="card card-pad">
         <div className="row gap-3" style={{ flexWrap: "wrap" }}>
           <div className="tabs">
-            {PRESETS.map((p) => (
-              <button key={p.value} className={`tab ${preset === p.value ? "active" : ""}`} onClick={() => setPreset(p.value)}>
-                {p.label}
+            {PRESET_ORDER.map((value) => (
+              <button key={value} className={`tab ${preset === value ? "active" : ""}`} onClick={() => setPreset(value)}>
+                {t(`reports.presets.${value}`)}
               </button>
             ))}
           </div>
@@ -82,7 +76,7 @@ export default function Reports() {
 
       {preset === "custom" && (!from || !to) ? (
         <div className="card card-pad">
-          <EmptyState title="Дата аралыгын тандаңыз" subtitle="Отчетту көрүү үчүн башталыш жана аяктоо дата белгилеңиз." />
+          <EmptyState title={t("reports.selectRange")} subtitle={t("reports.selectRangeSubtitle")} />
         </div>
       ) : !report ? (
         <div className="kpi-grid">
@@ -93,22 +87,22 @@ export default function Reports() {
       ) : (
         <>
           <div className="kpi-grid">
-            <KpiCard index={0} label="Жалпы сатуу" value={formatMoney(report.summary.totalSales)} icon={TrendingUp} accent="primary" />
-            <KpiCard index={1} label="Таза пайда" value={formatMoney(report.summary.netProfit)} icon={Wallet} accent="success" />
-            <KpiCard index={2} label="Чыгымдар" value={formatMoney(report.summary.totalExpenses)} icon={Receipt} accent="danger" />
-            <KpiCard index={3} label="Товарлардын өздүк наркы" value={formatMoney(report.summary.totalCogs)} icon={ShoppingBag} accent="warning" />
-            <KpiCard index={4} label="Орточо чек" value={formatMoney(report.summary.avgCheck)} icon={Percent} accent="primary" />
-            <KpiCard index={5} label="Сатуу саны" value={formatNumber(report.summary.salesCount)} icon={Award} accent="primary" />
+            <KpiCard index={0} label={t("reports.kpi.totalSales")} value={formatMoney(report.summary.totalSales)} icon={TrendingUp} accent="primary" />
+            <KpiCard index={1} label={t("reports.kpi.netProfit")} value={formatMoney(report.summary.netProfit)} icon={Wallet} accent="success" />
+            <KpiCard index={2} label={t("reports.kpi.totalExpenses")} value={formatMoney(report.summary.totalExpenses)} icon={Receipt} accent="danger" />
+            <KpiCard index={3} label={t("reports.kpi.totalCogs")} value={formatMoney(report.summary.totalCogs)} icon={ShoppingBag} accent="warning" />
+            <KpiCard index={4} label={t("reports.kpi.avgCheck")} value={formatMoney(report.summary.avgCheck)} icon={Percent} accent="primary" />
+            <KpiCard index={5} label={t("reports.kpi.salesCount")} value={formatNumber(report.summary.salesCount)} icon={Award} accent="primary" />
           </div>
 
           <div className="dashboard-bottom-grid">
             <div className="card">
               <div className="card-header">
-                <h2 className="card-title">Сатуу vs Чыгым динамикасы</h2>
+                <h2 className="card-title">{t("reports.dynamicsTitle")}</h2>
               </div>
               <div className="card-pad">
                 {report.series.length === 0 ? (
-                  <EmptyState title="Маалымат жок" subtitle="Тандалган мезгилде маалымат табылган жок." />
+                  <EmptyState title={t("reports.noData")} subtitle={t("reports.noDataSubtitle")} />
                 ) : (
                   <ResponsiveContainer width="100%" height={280}>
                     <AreaChart data={report.series} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
@@ -126,8 +120,8 @@ export default function Reports() {
                       <XAxis dataKey="date" tickFormatter={(v) => formatDate(v)} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
                       <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "var(--color-text-muted)" }} width={64} tickFormatter={(v) => formatNumber(v)} />
                       <Tooltip labelFormatter={(v) => formatDate(v as string)} formatter={(value: number) => formatMoney(value)} contentStyle={{ borderRadius: 12, border: "1px solid var(--color-border)" }} />
-                      <Area type="monotone" dataKey="sales" name="Сатуу" stroke="var(--color-primary-600)" strokeWidth={2.5} fill="url(#salesFill2)" />
-                      <Area type="monotone" dataKey="expenses" name="Чыгым" stroke="var(--color-danger-text)" strokeWidth={2} fill="url(#expenseFill2)" />
+                      <Area type="monotone" dataKey="sales" name={t("reports.sales")} stroke="var(--color-primary-600)" strokeWidth={2.5} fill="url(#salesFill2)" />
+                      <Area type="monotone" dataKey="expenses" name={t("reports.expense")} stroke="var(--color-danger-text)" strokeWidth={2} fill="url(#expenseFill2)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
@@ -138,29 +132,29 @@ export default function Reports() {
               <div className="card card-pad stack gap-2">
                 <div className="row gap-2">
                   <Trophy size={18} color="var(--color-warning-text)" />
-                  <span className="card-title" style={{ fontSize: "var(--font-size-md)" }}>Эң көп сатылган товар</span>
+                  <span className="card-title" style={{ fontSize: "var(--font-size-md)" }}>{t("reports.bestSelling")}</span>
                 </div>
                 {report.bestSelling ? (
                   <>
                     <span style={{ fontSize: "var(--font-size-lg)", fontWeight: 700 }}>{report.bestSelling.name}</span>
-                    <span className="text-muted">{formatNumber(report.bestSelling.quantitySold)} даана сатылды — {formatMoney(report.bestSelling.revenue)}</span>
+                    <span className="text-muted">{t("reports.bestSellingText", { qty: formatNumber(report.bestSelling.quantitySold), revenue: formatMoney(report.bestSelling.revenue) })}</span>
                   </>
                 ) : (
-                  <span className="text-muted">Маалымат жок</span>
+                  <span className="text-muted">{t("reports.noInfo")}</span>
                 )}
               </div>
               <div className="card card-pad stack gap-2">
                 <div className="row gap-2">
                   <Award size={18} color="var(--color-success-text)" />
-                  <span className="card-title" style={{ fontSize: "var(--font-size-md)" }}>Эң пайдалуу товар</span>
+                  <span className="card-title" style={{ fontSize: "var(--font-size-md)" }}>{t("reports.mostProfitable")}</span>
                 </div>
                 {report.mostProfitable ? (
                   <>
                     <span style={{ fontSize: "var(--font-size-lg)", fontWeight: 700 }}>{report.mostProfitable.name}</span>
-                    <span className="text-muted">Пайда: {formatMoney(report.mostProfitable.profit)}</span>
+                    <span className="text-muted">{t("reports.mostProfitableText", { profit: formatMoney(report.mostProfitable.profit) })}</span>
                   </>
                 ) : (
-                  <span className="text-muted">Маалымат жок</span>
+                  <span className="text-muted">{t("reports.noInfo")}</span>
                 )}
               </div>
             </div>
@@ -168,21 +162,21 @@ export default function Reports() {
 
           <div className="card">
             <div className="card-header">
-              <h2 className="card-title">Товарлар боюнча жыйынтык</h2>
+              <h2 className="card-title">{t("reports.productPerformance")}</h2>
             </div>
             {report.productPerformance.length === 0 ? (
               <div className="card-pad">
-                <EmptyState title="Сатуу жок" subtitle="Тандалган мезгилде сатуу болгон эмес." />
+                <EmptyState title={t("reports.noSales")} subtitle={t("reports.noSalesSubtitle")} />
               </div>
             ) : (
               <div className="table-wrap">
                 <table className="table">
                   <thead>
                     <tr>
-                      <th>Товар</th>
-                      <th className="table-cell-num">Сатылды</th>
-                      <th className="table-cell-num">Киреше</th>
-                      <th className="table-cell-num">Пайда</th>
+                      <th>{t("reports.table.product")}</th>
+                      <th className="table-cell-num">{t("reports.table.sold")}</th>
+                      <th className="table-cell-num">{t("reports.table.revenue")}</th>
+                      <th className="table-cell-num">{t("reports.table.profit")}</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -1,13 +1,15 @@
 import { Navigate, Outlet } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/useAuth";
 
 export function ProtectedRoute() {
+  const { t } = useTranslation();
   const { session, isLoading } = useAuth();
 
   if (isLoading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "var(--color-text-muted)" }}>
-        Жүктөлүүдө...
+        {t("common.loading")}
       </div>
     );
   }

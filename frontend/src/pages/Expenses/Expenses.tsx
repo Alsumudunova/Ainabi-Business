@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Receipt, Trash2 } from "lucide-react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { SkeletonRows } from "../../components/ui/Skeleton";
@@ -6,14 +7,16 @@ import { Badge } from "../../components/ui/Badge";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { AddExpenseModal } from "./AddExpenseModal";
 import { useToast } from "../../hooks/useToast";
+import { useLabels } from "../../hooks/useLabels";
 import * as expenseService from "../../services/expense.service";
 import { extractErrorMessage } from "../../services/api";
 import { formatDateTime, formatMoney } from "../../utils/format";
-import { expenseCategoryLabels } from "../../utils/labels";
 import type { Expense, ExpenseCategory } from "../../types";
 
 export default function Expenses() {
+  const { t } = useTranslation();
   const { showToast } = useToast();
+  const labels = useLabels();
   const [expenses, setExpenses] = useState<Expense[] | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | "">("");
   const [addOpen, setAddOpen] = useState(false);
@@ -26,8 +29,8 @@ export default function Expenses() {
     expenseService
       .listExpenses({ category: categoryFilter || undefined })
       .then(setExpenses)
-      .catch((error) => showToast({ variant: "error", title: "Жүктөлгөн жок", message: extractErrorMessage(error) }));
-  }, [categoryFilter, showToast]);
+      .catch((error) => showToast({ variant: "error", title: t("expenses.loadFailed"), message: extractErrorMessage(error) }));
+  }, [categoryFilter, showToast, t]);
 
   useEffect(() => {
     load();
@@ -37,11 +40,11 @@ export default function Expenses() {
     setSubmitting(true);
     try {
       await expenseService.createExpense(values);
-      showToast({ variant: "success", title: "Чыгым кошулду" });
+      showToast({ variant: "success", title: t("expenses.added") });
       setAddOpen(false);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Сакталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.saveFailed"), message: extractErrorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -52,11 +55,11 @@ export default function Expenses() {
     setDeleting(true);
     try {
       await expenseService.deleteExpense(deleteTarget.id);
-      showToast({ variant: "success", title: "Чыгым өчүрүлдү" });
+      showToast({ variant: "success", title: t("expenses.deleted") });
       setDeleteTarget(null);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Өчүрүлгөн жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.deleteFailed"), message: extractErrorMessage(error) });
     } finally {
       setDeleting(false);
     }
@@ -68,18 +71,18 @@ export default function Expenses() {
     <div className="stack gap-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Чыгымдар</h1>
-          <p className="page-subtitle">Бизнес чыгымдарыңызды категория боюнча көзөмөлдөңүз</p>
+          <h1 className="page-title">{t("expenses.title")}</h1>
+          <p className="page-subtitle">{t("expenses.subtitle")}</p>
         </div>
         <button className="btn btn-primary" onClick={() => setAddOpen(true)}>
           <Plus size={18} />
-          Чыгым кошуу
+          {t("expenses.add")}
         </button>
       </div>
 
       <div className="card card-pad row gap-4">
         <div className="stack gap-1">
-          <span className="text-muted" style={{ fontSize: "var(--font-size-sm)", fontWeight: 600 }}>Жалпы чыгым</span>
+          <span className="text-muted" style={{ fontSize: "var(--font-size-sm)", fontWeight: 600 }}>{t("expenses.totalLabel")}</span>
           <span className="mono-num" style={{ fontSize: "var(--font-size-2xl)", fontWeight: 700 }}>{formatMoney(total)}</span>
         </div>
       </div>
@@ -87,8 +90,8 @@ export default function Expenses() {
       <div className="card">
         <div className="filter-bar">
           <select className="select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as ExpenseCategory | "")}>
-            <option value="">Бардык категория</option>
-            {Object.entries(expenseCategoryLabels).map(([key, label]) => (
+            <option value="">{t("expenses.allCategories")}</option>
+            {Object.entries(labels.expenseCategory).map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
               </option>
@@ -101,17 +104,17 @@ export default function Expenses() {
             <SkeletonRows rows={5} height={48} />
           </div>
         ) : expenses.length === 0 ? (
-          <EmptyState icon={<Receipt size={26} />} title="Чыгым жок" subtitle="Азырынча чыгым катталган эмес." />
+          <EmptyState icon={<Receipt size={26} />} title={t("expenses.empty")} subtitle={t("expenses.emptySubtitle")} />
         ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Категория</th>
-                  <th className="table-cell-num">Сумма</th>
-                  <th>Комментарий</th>
-                  <th>Ким кошту</th>
-                  <th>Дата</th>
+                  <th>{t("expenses.table.category")}</th>
+                  <th className="table-cell-num">{t("expenses.table.amount")}</th>
+                  <th>{t("expenses.table.comment")}</th>
+                  <th>{t("expenses.table.addedBy")}</th>
+                  <th>{t("expenses.table.date")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -119,7 +122,7 @@ export default function Expenses() {
                 {expenses.map((e) => (
                   <tr key={e.id}>
                     <td>
-                      <Badge variant="neutral">{expenseCategoryLabels[e.category]}</Badge>
+                      <Badge variant="neutral">{labels.expenseCategory[e.category]}</Badge>
                     </td>
                     <td className="table-cell-num" style={{ fontWeight: 700 }}>{formatMoney(e.amount)}</td>
                     <td className="text-muted">{e.comment ?? "—"}</td>
@@ -142,8 +145,8 @@ export default function Expenses() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Чыгымды өчүрөсүзбү?"
-        description="Бул аракетти артка кайтарууга болбойт."
+        title={t("expenses.deleteConfirmTitle")}
+        description={t("expenses.deleteConfirmDescription")}
         danger
         loading={deleting}
         onConfirm={handleDelete}

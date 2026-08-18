@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal } from "../../components/ui/Modal";
+import { useLabels } from "../../hooks/useLabels";
 import type { Role } from "../../types";
 
 interface InviteEmployeeModalProps {
@@ -10,6 +12,8 @@ interface InviteEmployeeModalProps {
 }
 
 export function InviteEmployeeModal({ open, onClose, submitting, onSubmit }: InviteEmployeeModalProps) {
+  const { t } = useTranslation();
+  const labels = useLabels();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,43 +39,43 @@ export function InviteEmployeeModal({ open, onClose, submitting, onSubmit }: Inv
   return (
     <Modal open={open} onClose={onClose}>
       <form className="stack gap-4" onSubmit={handleSubmit}>
-        <h2 className="card-title">Кызматкер кошуу</h2>
+        <h2 className="card-title">{t("employees.inviteModal.title")}</h2>
 
         <div className="field">
-          <label className="field-label">Аты</label>
+          <label className="field-label">{t("employees.inviteModal.name")}</label>
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
         <div className="form-grid">
           <div className="field">
-            <label className="field-label">Email</label>
+            <label className="field-label">{t("employees.inviteModal.email")}</label>
             <input type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div className="field">
-            <label className="field-label">Телефон</label>
+            <label className="field-label">{t("employees.inviteModal.phone")}</label>
             <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
         </div>
         <div className="form-grid">
           <div className="field">
-            <label className="field-label">Убактылуу пароль</label>
+            <label className="field-label">{t("employees.inviteModal.tempPassword")}</label>
             <input className="input" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
           </div>
           <div className="field">
-            <label className="field-label">Роль</label>
+            <label className="field-label">{t("employees.inviteModal.role")}</label>
             <select className="select" value={role} onChange={(e) => setRole(e.target.value as Exclude<Role, "OWNER">)}>
-              <option value="ADMIN">Админ</option>
-              <option value="CASHIER">Кассир</option>
+              <option value="ADMIN">{labels.role.ADMIN}</option>
+              <option value="CASHIER">{labels.role.CASHIER}</option>
             </select>
           </div>
         </div>
-        <p className="field-hint">Кызматкер ушул email жана пароль менен системага кире алат. Кийин паролду өзгөртүүнү сунуштаңыз.</p>
+        <p className="field-hint">{t("employees.inviteModal.hint")}</p>
 
         <div className="row gap-3" style={{ justifyContent: "flex-end" }}>
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
-            Жокко чыгаруу
+            {t("common.cancel")}
           </button>
           <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? "Сакталууда..." : "Кошуу"}
+            {submitting ? t("common.saving") : t("common.add")}
           </button>
         </div>
       </form>

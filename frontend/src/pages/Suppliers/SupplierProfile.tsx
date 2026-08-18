@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Phone, Plus, Truck, Wallet } from "lucide-react";
 import { SkeletonRows } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -7,16 +8,18 @@ import { Badge } from "../../components/ui/Badge";
 import { AddSupplierDebtModal } from "./AddSupplierDebtModal";
 import { SupplierPaymentModal } from "./SupplierPaymentModal";
 import { useToast } from "../../hooks/useToast";
+import { useLabels } from "../../hooks/useLabels";
 import * as supplierService from "../../services/supplier.service";
 import { extractErrorMessage } from "../../services/api";
 import { formatDateTime, formatMoney, formatNumber } from "../../utils/format";
-import { debtStatusLabels } from "../../utils/labels";
 import type { PaymentMethod, SupplierDebt, SupplierDetail } from "../../types";
 
 export default function SupplierProfile() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const labels = useLabels();
   const [supplier, setSupplier] = useState<SupplierDetail | null>(null);
   const [addDebtOpen, setAddDebtOpen] = useState(false);
   const [addDebtSubmitting, setAddDebtSubmitting] = useState(false);
@@ -28,8 +31,8 @@ export default function SupplierProfile() {
     supplierService
       .getSupplier(id)
       .then(setSupplier)
-      .catch((error) => showToast({ variant: "error", title: "Жеткирүүчү табылган жок", message: extractErrorMessage(error) }));
-  }, [id, showToast]);
+      .catch((error) => showToast({ variant: "error", title: t("suppliers.profile.notFound"), message: extractErrorMessage(error) }));
+  }, [id, showToast, t]);
 
   useEffect(() => {
     load();
@@ -40,11 +43,11 @@ export default function SupplierProfile() {
     setAddDebtSubmitting(true);
     try {
       await supplierService.createSupplierDebt(id, values);
-      showToast({ variant: "success", title: "Карыз кошулду" });
+      showToast({ variant: "success", title: t("suppliers.debtAdded") });
       setAddDebtOpen(false);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Сакталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.saveFailed"), message: extractErrorMessage(error) });
     } finally {
       setAddDebtSubmitting(false);
     }
@@ -55,11 +58,11 @@ export default function SupplierProfile() {
     setPaySubmitting(true);
     try {
       await supplierService.addSupplierPayment(payTarget.id, values);
-      showToast({ variant: "success", title: "Төлөм кабыл алынды", message: formatMoney(values.amount) });
+      showToast({ variant: "success", title: t("suppliers.paymentAcceptedTitle"), message: formatMoney(values.amount) });
       setPayTarget(null);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Кабыл алынган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("suppliers.paymentNotAcceptedTitle"), message: extractErrorMessage(error) });
     } finally {
       setPaySubmitting(false);
     }
@@ -91,28 +94,28 @@ export default function SupplierProfile() {
                   <Phone size={13} /> {supplier.phone}
                 </span>
               ) : (
-                "Телефон көрсөтүлгөн эмес"
+                t("suppliers.profile.noPhone")
               )}
             </p>
           </div>
         </div>
         <button className="btn btn-primary" onClick={() => setAddDebtOpen(true)}>
           <Plus size={18} />
-          Карыз кошуу
+          {t("debts.add")}
         </button>
       </div>
 
       <div className="kpi-grid">
         <div className="card card-pad stack gap-2">
-          <span className="text-muted" style={{ fontSize: "var(--font-size-sm)", fontWeight: 600 }}>Жалпы алынган товар</span>
+          <span className="text-muted" style={{ fontSize: "var(--font-size-sm)", fontWeight: 600 }}>{t("suppliers.profile.totalPurchased")}</span>
           <span className="mono-num" style={{ fontSize: "var(--font-size-2xl)", fontWeight: 700 }}>{formatMoney(totalPurchased)}</span>
         </div>
         <div className="card card-pad stack gap-2">
-          <span className="text-muted" style={{ fontSize: "var(--font-size-sm)", fontWeight: 600 }}>Жеткирүүлөр саны</span>
+          <span className="text-muted" style={{ fontSize: "var(--font-size-sm)", fontWeight: 600 }}>{t("suppliers.profile.deliveryCount")}</span>
           <span className="mono-num" style={{ fontSize: "var(--font-size-2xl)", fontWeight: 700 }}>{supplier.deliveries.length}</span>
         </div>
         <div className="card card-pad stack gap-2">
-          <span className="text-muted" style={{ fontSize: "var(--font-size-sm)", fontWeight: 600 }}>Учурдагы карыз</span>
+          <span className="text-muted" style={{ fontSize: "var(--font-size-sm)", fontWeight: 600 }}>{t("suppliers.profile.currentDebt")}</span>
           <span className="mono-num" style={{ fontSize: "var(--font-size-2xl)", fontWeight: 700, color: totalDebt > 0 ? "var(--color-danger-text)" : undefined }}>
             {formatMoney(totalDebt)}
           </span>
@@ -121,7 +124,7 @@ export default function SupplierProfile() {
 
       {supplier.address && (
         <div className="card card-pad">
-          <span className="field-label">Дарек</span>
+          <span className="field-label">{t("suppliers.profile.address")}</span>
           <p style={{ marginTop: 6 }}>{supplier.address}</p>
         </div>
       )}
@@ -130,23 +133,23 @@ export default function SupplierProfile() {
         <div className="card-header">
           <h2 className="card-title">
             <Truck size={16} style={{ marginRight: 6, verticalAlign: -2 }} />
-            Жеткирүү тарыхы
+            {t("suppliers.profile.deliveryHistory")}
           </h2>
         </div>
         {supplier.deliveries.length === 0 ? (
           <div className="card-pad">
-            <EmptyState title="Жеткирүү жок" subtitle="Бул жеткирүүчүдөн азырынча товар келген эмес." />
+            <EmptyState title={t("suppliers.profile.noDeliveries")} subtitle={t("suppliers.profile.noDeliveriesSubtitle")} />
           </div>
         ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Дата</th>
-                  <th>Товар</th>
-                  <th className="table-cell-num">Саны</th>
-                  <th className="table-cell-num">Баасы</th>
-                  <th className="table-cell-num">Суммасы</th>
+                  <th>{t("suppliers.profile.date")}</th>
+                  <th>{t("suppliers.profile.product")}</th>
+                  <th className="table-cell-num">{t("suppliers.profile.quantity")}</th>
+                  <th className="table-cell-num">{t("suppliers.profile.price")}</th>
+                  <th className="table-cell-num">{t("suppliers.profile.total")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,24 +172,24 @@ export default function SupplierProfile() {
         <div className="card-header">
           <h2 className="card-title">
             <Wallet size={16} style={{ marginRight: 6, verticalAlign: -2 }} />
-            Карыз тарыхы
+            {t("suppliers.profile.debtHistory")}
           </h2>
         </div>
         {supplier.debts.length === 0 ? (
           <div className="card-pad">
-            <EmptyState title="Карыз жок" subtitle="Бул жеткирүүчүгө карыз жок." />
+            <EmptyState title={t("suppliers.profile.noDebts")} subtitle={t("suppliers.profile.noDebtsSubtitle")} />
           </div>
         ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Дата</th>
-                  <th className="table-cell-num">Жалпы</th>
-                  <th className="table-cell-num">Төлөнгөн</th>
-                  <th className="table-cell-num">Калган</th>
-                  <th>Статус</th>
-                  <th>Комментарий</th>
+                  <th>{t("suppliers.profile.date")}</th>
+                  <th className="table-cell-num">{t("suppliers.profile.totalLabel")}</th>
+                  <th className="table-cell-num">{t("suppliers.profile.paid")}</th>
+                  <th className="table-cell-num">{t("suppliers.profile.remaining")}</th>
+                  <th>{t("suppliers.profile.status")}</th>
+                  <th>{t("suppliers.profile.comment")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -199,14 +202,14 @@ export default function SupplierProfile() {
                     <td className="table-cell-num">{formatMoney(d.remainingAmount)}</td>
                     <td>
                       <Badge variant={d.status === "PAID" ? "success" : d.status === "PARTIAL" ? "warning" : "danger"}>
-                        {debtStatusLabels[d.status]}
+                        {labels.debtStatus[d.status]}
                       </Badge>
                     </td>
                     <td className="text-muted">{d.comment ?? "—"}</td>
                     <td>
                       {d.status !== "PAID" && (
                         <button className="btn btn-secondary btn-sm" onClick={() => setPayTarget(d)}>
-                          Төлөм жасоо
+                          {t("suppliers.profile.pay")}
                         </button>
                       )}
                     </td>

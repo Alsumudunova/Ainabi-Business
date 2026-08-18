@@ -1,5 +1,6 @@
 import { ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 
 interface DrawerProps {
@@ -12,6 +13,7 @@ interface DrawerProps {
 }
 
 export function Drawer({ open, onClose, title, subtitle, children, footer }: DrawerProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -31,7 +33,7 @@ export function Drawer({ open, onClose, title, subtitle, children, footer }: Dra
             <h2 className="card-title">{title}</h2>
             {subtitle && <p className="card-subtitle">{subtitle}</p>}
           </div>
-          <button className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Жабуу">
+          <button className="btn btn-ghost btn-icon" onClick={onClose} aria-label={t("common.close")}>
             <X size={18} />
           </button>
         </div>

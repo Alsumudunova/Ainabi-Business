@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Clock, Phone, Plus, Search, SquarePen, Trash2, Users } from "lucide-react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { SkeletonRows } from "../../components/ui/Skeleton";
@@ -22,6 +23,7 @@ function isInactive(c: Customer): boolean {
 }
 
 export default function Customers() {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[] | null>(null);
@@ -39,8 +41,8 @@ export default function Customers() {
     customerService
       .listCustomers(debouncedSearch || undefined)
       .then(setCustomers)
-      .catch((error) => showToast({ variant: "error", title: "Жүктөлгөн жок", message: extractErrorMessage(error) }));
-  }, [debouncedSearch, showToast]);
+      .catch((error) => showToast({ variant: "error", title: t("customers.loadFailed"), message: extractErrorMessage(error) }));
+  }, [debouncedSearch, showToast, t]);
 
   useEffect(() => {
     load();
@@ -52,16 +54,16 @@ export default function Customers() {
       const payload = { name: values.name, phone: values.phone || null, notes: values.notes || null };
       if (editing) {
         await customerService.updateCustomer(editing.id, payload);
-        showToast({ variant: "success", title: "Кардар өзгөртүлдү" });
+        showToast({ variant: "success", title: t("customers.saved") });
       } else {
         await customerService.createCustomer(payload);
-        showToast({ variant: "success", title: "Кардар кошулду" });
+        showToast({ variant: "success", title: t("customers.created") });
       }
       setDrawerOpen(false);
       setEditing(null);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Сакталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.saveFailed"), message: extractErrorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -78,11 +80,11 @@ export default function Customers() {
     setDeleting(true);
     try {
       await customerService.deleteCustomer(deleteTarget.id);
-      showToast({ variant: "success", title: "Кардар өчүрүлдү" });
+      showToast({ variant: "success", title: t("customers.deleted") });
       setDeleteTarget(null);
       load();
     } catch (error) {
-      showToast({ variant: "error", title: "Өчүрүлгөн жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("common.deleteFailed"), message: extractErrorMessage(error) });
     } finally {
       setDeleting(false);
     }
@@ -92,8 +94,8 @@ export default function Customers() {
     <div className="stack gap-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Кардарлар</h1>
-          <p className="page-subtitle">Кардарларыңыздын маалыматын жана сатып алуу тарыхын көрүңүз</p>
+          <h1 className="page-title">{t("customers.title")}</h1>
+          <p className="page-subtitle">{t("customers.subtitle")}</p>
         </div>
         <button
           className="btn btn-primary"
@@ -103,7 +105,7 @@ export default function Customers() {
           }}
         >
           <Plus size={18} />
-          Кардар кошуу
+          {t("customers.add")}
         </button>
       </div>
 
@@ -117,9 +119,9 @@ export default function Customers() {
             <Clock size={20} />
           </div>
           <div className="stack gap-1">
-            <span style={{ fontWeight: 700 }}>{inactiveCount} кардар {INACTIVE_DAYS}+ күндөн бери келген жок</span>
+            <span style={{ fontWeight: 700 }}>{t("customers.inactiveBanner", { count: inactiveCount, days: INACTIVE_DAYS })}</span>
             <span className="text-muted" style={{ fontSize: "var(--font-size-sm)" }}>
-              {showInactiveOnly ? "Баарын көрүү үчүн басыңыз" : "Аларга кайра кайрылып көрүңүз — тизмени көрүү үчүн басыңыз"}
+              {showInactiveOnly ? t("customers.inactiveBannerShowAll") : t("customers.inactiveBannerHint")}
             </span>
           </div>
         </button>
@@ -129,11 +131,11 @@ export default function Customers() {
         <div className="filter-bar">
           <div className="input-with-icon">
             <Search size={16} />
-            <input className="input" placeholder="Кардар же телефон боюнча издөө" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input className="input" placeholder={t("customers.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           {showInactiveOnly && (
             <button className="btn btn-secondary btn-sm" onClick={() => setShowInactiveOnly(false)}>
-              Фильтрди алып салуу
+              {t("customers.clearFilter")}
             </button>
           )}
         </div>
@@ -145,12 +147,12 @@ export default function Customers() {
         ) : visibleCustomers.length === 0 ? (
           <EmptyState
             icon={<Users size={26} />}
-            title={showInactiveOnly ? "Активсиз кардар жок" : "Азырынча кардар жок"}
-            subtitle={showInactiveOnly ? "Бардык кардарларыңыз жакында сатып алган." : "Биринчи кардарыңызды кошуп баштаңыз."}
+            title={showInactiveOnly ? t("customers.emptyInactive") : t("customers.emptyNone")}
+            subtitle={showInactiveOnly ? t("customers.emptyInactiveSubtitle") : t("customers.emptyNoneSubtitle")}
             action={
               !showInactiveOnly && (
                 <button className="btn btn-primary" style={{ marginTop: "var(--space-2)" }} onClick={() => setDrawerOpen(true)}>
-                  <Plus size={16} /> Кардар кошуу
+                  <Plus size={16} /> {t("customers.add")}
                 </button>
               )
             }
@@ -160,12 +162,12 @@ export default function Customers() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Аты</th>
-                  <th>Телефон</th>
-                  <th className="table-cell-num">Сатып алуулар</th>
-                  <th className="table-cell-num">Жалпы сатып алуу</th>
-                  <th className="table-cell-num">Карыз</th>
-                  <th>Акыркы сатып алуу</th>
+                  <th>{t("customers.table.name")}</th>
+                  <th>{t("customers.table.phone")}</th>
+                  <th className="table-cell-num">{t("customers.table.purchases")}</th>
+                  <th className="table-cell-num">{t("customers.table.totalSpent")}</th>
+                  <th className="table-cell-num">{t("customers.table.debt")}</th>
+                  <th>{t("customers.table.lastPurchase")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -188,7 +190,7 @@ export default function Customers() {
                     <td className="text-muted">
                       <div className="stack gap-1">
                         <span>{c.lastPurchaseAt ? formatDate(c.lastPurchaseAt) : "—"}</span>
-                        {isInactive(c) && <Badge variant="warning">{INACTIVE_DAYS}+ күн келген жок</Badge>}
+                        {isInactive(c) && <Badge variant="warning">{t("customers.inactiveBadge", { days: INACTIVE_DAYS })}</Badge>}
                       </div>
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
@@ -219,8 +221,8 @@ export default function Customers() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Кардарды өчүрөсүзбү?"
-        description={`"${deleteTarget?.name}" толугу менен өчүрүлөт.`}
+        title={t("customers.deleteConfirmTitle")}
+        description={t("customers.deleteConfirmDescription", { name: deleteTarget?.name })}
         danger
         loading={deleting}
         onConfirm={handleDelete}

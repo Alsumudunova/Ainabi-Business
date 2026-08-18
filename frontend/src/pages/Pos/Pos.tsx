@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Banknote, CreditCard, Minus, Package, Plus, QrCode, ScanBarcode, Search, ShoppingCart, Trash2, Wallet } from "lucide-react";
 import { SkeletonRows } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useToast } from "../../hooks/useToast";
+import { useLabels } from "../../hooks/useLabels";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import * as productService from "../../services/product.service";
 import * as categoryService from "../../services/category.service";
@@ -18,15 +20,18 @@ interface CartLine {
   quantity: number;
 }
 
-const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: typeof Banknote }[] = [
-  { value: "CASH", label: "Накталай", icon: Banknote },
-  { value: "CARD", label: "Карта", icon: CreditCard },
-  { value: "QR", label: "QR", icon: QrCode },
-  { value: "DEBT", label: "Карыз", icon: Wallet },
-];
+const PAYMENT_ICONS: Record<PaymentMethod, typeof Banknote> = {
+  CASH: Banknote,
+  CARD: CreditCard,
+  QR: QrCode,
+  DEBT: Wallet,
+};
+const PAYMENT_ORDER: PaymentMethod[] = ["CASH", "CARD", "QR", "DEBT"];
 
 export default function Pos() {
+  const { t } = useTranslation();
   const { showToast } = useToast();
+  const labels = useLabels();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -46,8 +51,8 @@ export default function Pos() {
     productService
       .listProducts({ search: debouncedSearch || undefined, categoryId: activeCategory || undefined, status: "ACTIVE", pageSize: 100 })
       .then((res) => setProducts(res.items))
-      .catch((error) => showToast({ variant: "error", title: "Товарлар жүктөлгөн жок", message: extractErrorMessage(error) }));
-  }, [debouncedSearch, activeCategory, showToast]);
+      .catch((error) => showToast({ variant: "error", title: t("pos.loadFailed"), message: extractErrorMessage(error) }));
+  }, [debouncedSearch, activeCategory, showToast, t]);
 
   useEffect(() => {
     loadProducts();
@@ -64,7 +69,7 @@ export default function Pos() {
       const existing = prev.find((line) => line.product.id === product.id);
       if (existing) {
         if (existing.quantity >= product.quantity) {
-          showToast({ variant: "error", title: "Складда жетишсиз", message: `${product.name} үчүн бар болгону ${product.quantity} калды.` });
+          showToast({ variant: "error", title: t("pos.insufficientStockTitle"), message: t("pos.insufficientStockOnly", { name: product.name, qty: product.quantity }) });
           return prev;
         }
         return prev.map((line) => (line.product.id === product.id ? { ...line, quantity: line.quantity + 1 } : line));
@@ -83,7 +88,7 @@ export default function Pos() {
           if (line.product.id !== productId) return line;
           const next = line.quantity + delta;
           if (next > line.product.quantity) {
-            showToast({ variant: "error", title: "Складда жетишсиз", message: `Бар болгону ${line.product.quantity} калды.` });
+            showToast({ variant: "error", title: t("pos.insufficientStockTitle"), message: t("pos.insufficientStockRemaining", { qty: line.product.quantity }) });
             return line;
           }
           return { ...line, quantity: next };
@@ -104,7 +109,7 @@ export default function Pos() {
       addToCart(product);
       setBarcode("");
     } catch {
-      showToast({ variant: "error", title: "Товар табылган жок", message: `"${barcode}" штрих-коду боюнча товар жок.` });
+      showToast({ variant: "error", title: t("pos.productNotFoundTitle"), message: t("pos.productNotFoundMessage", { barcode }) });
     }
   }
 
@@ -114,7 +119,7 @@ export default function Pos() {
   async function completeSale() {
     if (cart.length === 0) return;
     if (paymentMethod === "DEBT" && !customerId) {
-      showToast({ variant: "error", title: "Кардар тандаңыз", message: "Карызга сатуу үчүн кардарды тандаңыз." });
+      showToast({ variant: "error", title: t("pos.summary.selectCustomerTitle"), message: t("pos.summary.selectCustomerMessage") });
       return;
     }
     setCompleting(true);
@@ -125,14 +130,14 @@ export default function Pos() {
         paymentMethod,
         customerId: paymentMethod === "DEBT" ? customerId : undefined,
       });
-      showToast({ variant: "success", title: "Сатуу ийгиликтүү аяктады", message: `Жыйынтык: ${formatMoney(total)}` });
+      showToast({ variant: "success", title: t("pos.summary.saleSuccessTitle"), message: t("pos.summary.saleSuccessMessage", { total: formatMoney(total) }) });
       setCart([]);
       setDiscount(0);
       setCustomerId("");
       setPaymentMethod("CASH");
       loadProducts();
     } catch (error) {
-      showToast({ variant: "error", title: "Сатуу аякталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("pos.summary.saleFailedTitle"), message: extractErrorMessage(error) });
     } finally {
       setCompleting(false);
     }
@@ -145,16 +150,16 @@ export default function Pos() {
           <div className="row gap-2">
             <div className="input-with-icon" style={{ flex: 1 }}>
               <Search size={16} />
-              <input className="input" placeholder="Товар издөө" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <input className="input" placeholder={t("pos.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <form onSubmit={handleBarcodeSubmit} className="input-with-icon" style={{ width: 200 }}>
               <ScanBarcode size={16} />
-              <input className="input" placeholder="Штрих-код" value={barcode} onChange={(e) => setBarcode(e.target.value)} />
+              <input className="input" placeholder={t("pos.barcodePlaceholder")} value={barcode} onChange={(e) => setBarcode(e.target.value)} />
             </form>
           </div>
           <div className="pos-category-scroll">
             <button className={`pos-category-chip ${activeCategory === "" ? "active" : ""}`} onClick={() => setActiveCategory("")}>
-              Баары
+              {t("pos.allCategories")}
             </button>
             {categories.map((c) => (
               <button key={c.id} className={`pos-category-chip ${activeCategory === c.id ? "active" : ""}`} onClick={() => setActiveCategory(c.id)}>
@@ -169,7 +174,7 @@ export default function Pos() {
             <SkeletonRows rows={6} height={60} />
           </div>
         ) : products.length === 0 ? (
-          <EmptyState icon={<Package size={26} />} title="Товар табылган жок" subtitle="Издөө шартын өзгөртүп көрүңүз." />
+          <EmptyState icon={<Package size={26} />} title={t("pos.emptyProducts")} subtitle={t("pos.emptyProductsSubtitle")} />
         ) : (
           <div className="pos-product-grid">
             {products.map((p) => (
@@ -177,7 +182,7 @@ export default function Pos() {
                 <div className="pos-product-thumb">{p.imageUrl ? <img src={p.imageUrl} alt={p.name} /> : <Package size={22} />}</div>
                 <span className="pos-product-name">{p.name}</span>
                 <span className="pos-product-price">{formatMoney(p.salePrice)}</span>
-                <span className="pos-product-stock">{p.quantity > 0 ? `${p.quantity} калды` : "Бүттү"}</span>
+                <span className="pos-product-stock">{p.quantity > 0 ? `${p.quantity} ${t("pos.left")}` : t("pos.out")}</span>
               </button>
             ))}
           </div>
@@ -187,19 +192,19 @@ export default function Pos() {
       <div className="card pos-cart">
         <div className="pos-cart-header row gap-2">
           <ShoppingCart size={18} className={bumpedId ? "pop-once" : undefined} />
-          <span className="card-title">Учурдагы сатуу</span>
+          <span className="card-title">{t("pos.cart.title")}</span>
           {cart.length > 0 && <span className="badge badge-info">{cart.reduce((sum, l) => sum + l.quantity, 0)}</span>}
           <span className="spacer" />
           {cart.length > 0 && (
             <button className="btn btn-ghost btn-sm" onClick={() => setCart([])}>
-              Тазалоо
+              {t("pos.cart.clear")}
             </button>
           )}
         </div>
 
         <div className="pos-cart-items">
           {cart.length === 0 ? (
-            <EmptyState icon={<ShoppingCart size={22} />} title="Себет бош" subtitle="Товарды тандап себетке кошуңуз." />
+            <EmptyState icon={<ShoppingCart size={22} />} title={t("pos.cart.empty")} subtitle={t("pos.cart.emptySubtitle")} />
           ) : (
             cart.map((line) => (
               <div className="pos-cart-item" key={line.product.id}>
@@ -210,16 +215,16 @@ export default function Pos() {
                   </div>
                 </div>
                 <div className="pos-qty-control">
-                  <button onClick={() => changeQuantity(line.product.id, -1)} aria-label="Азайтуу">
+                  <button onClick={() => changeQuantity(line.product.id, -1)} aria-label={t("pos.cart.decrease")}>
                     <Minus size={13} />
                   </button>
                   <span className="pos-qty-value">{line.quantity}</span>
-                  <button onClick={() => changeQuantity(line.product.id, 1)} aria-label="Көбөйтүү">
+                  <button onClick={() => changeQuantity(line.product.id, 1)} aria-label={t("pos.cart.increase")}>
                     <Plus size={13} />
                   </button>
                 </div>
                 <span className="pos-cart-item-total mono-num">{formatMoney(line.product.salePrice * line.quantity)}</span>
-                <button className="btn btn-ghost btn-icon btn-sm" onClick={() => removeLine(line.product.id)} aria-label="Өчүрүү">
+                <button className="btn btn-ghost btn-icon btn-sm" onClick={() => removeLine(line.product.id)} aria-label={t("pos.cart.removeAria")}>
                   <Trash2 size={15} color="var(--color-danger-text)" />
                 </button>
               </div>
@@ -229,11 +234,11 @@ export default function Pos() {
 
         <div className="pos-summary">
           <div className="pos-summary-row">
-            <span>Subtotal</span>
+            <span>{t("pos.summary.subtotal")}</span>
             <span className="mono-num">{formatMoney(subtotal)}</span>
           </div>
           <div className="pos-summary-row" style={{ alignItems: "center" }}>
-            <span>Скидка</span>
+            <span>{t("pos.summary.discount")}</span>
             <input
               type="number"
               min={0}
@@ -245,22 +250,25 @@ export default function Pos() {
             />
           </div>
           <div className="pos-summary-total">
-            <span>Жыйынтык</span>
+            <span>{t("pos.summary.total")}</span>
             <span className="mono-num">{formatMoney(total)}</span>
           </div>
 
           <div className="pos-payment-grid">
-            {PAYMENT_OPTIONS.map((opt) => (
-              <button key={opt.value} className={`pos-payment-btn ${paymentMethod === opt.value ? "active" : ""}`} onClick={() => setPaymentMethod(opt.value)}>
-                <opt.icon size={18} />
-                {opt.label}
-              </button>
-            ))}
+            {PAYMENT_ORDER.map((value) => {
+              const Icon = PAYMENT_ICONS[value];
+              return (
+                <button key={value} className={`pos-payment-btn ${paymentMethod === value ? "active" : ""}`} onClick={() => setPaymentMethod(value)}>
+                  <Icon size={18} />
+                  {labels.paymentMethod[value]}
+                </button>
+              );
+            })}
           </div>
 
           {paymentMethod === "DEBT" && (
             <select className="select" value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
-              <option value="">Кардарды тандаңыз</option>
+              <option value="">{t("pos.summary.selectCustomer")}</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} {c.phone ? `— ${c.phone}` : ""}
@@ -270,7 +278,7 @@ export default function Pos() {
           )}
 
           <button className="btn btn-primary btn-lg btn-block" disabled={cart.length === 0 || completing} onClick={completeSale}>
-            {completing ? "Аякталууда..." : "Сатууну аяктоо"}
+            {completing ? t("pos.summary.completing") : t("pos.summary.completeButton")}
           </button>
         </div>
       </div>
