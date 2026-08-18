@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Drawer } from "../../components/ui/Drawer";
 import type { Category, Product, ProductUnit } from "../../types";
 import { formatMoney } from "../../utils/format";
+import { generateBarcodeFromSku } from "../../utils/barcode";
 import "./Products.css";
 
 interface ProductDrawerProps {
@@ -45,7 +46,7 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
         salePrice: z.coerce.number().nonnegative(t("products.drawer.salePriceRequired")),
         quantity: z.coerce.number().nonnegative(),
         minQuantity: z.coerce.number().nonnegative(),
-        unit: z.enum(["PIECE", "KG", "LITER", "METER", "PACK"]),
+        unit: z.enum(["PIECE", "KG", "GRAM", "LITER", "METER", "PACK", "BOX"]),
         imageUrl: z.string().optional(),
         description: z.string().optional(),
       }),
@@ -55,9 +56,11 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
   const UNIT_OPTIONS: { value: ProductUnit; label: string }[] = [
     { value: "PIECE", label: t("products.units.PIECE") },
     { value: "KG", label: t("products.units.KG") },
+    { value: "GRAM", label: t("products.units.GRAM") },
     { value: "LITER", label: t("products.units.LITER") },
     { value: "METER", label: t("products.units.METER") },
     { value: "PACK", label: t("products.units.PACK") },
+    { value: "BOX", label: t("products.units.BOX") },
   ];
 
   const {
@@ -65,14 +68,21 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(schema),
     defaultValues: { unit: "PIECE", quantity: 0, minQuantity: 0 },
   });
 
+  // Tracks the last barcode *we* auto-filled, so we only keep overwriting it
+  // while the user hasn't typed their own — never touches a barcode that
+  // was already there (typed by hand, or loaded from an existing product).
+  const lastAutoBarcode = useRef<string | undefined>(undefined);
+
   useEffect(() => {
     if (open) {
+      lastAutoBarcode.current = undefined;
       reset(
         product
           ? {
@@ -93,9 +103,19 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
     }
   }, [open, product, reset]);
 
-  const [purchasePrice, salePrice] = watch(["purchasePrice", "salePrice"]);
+  const [purchasePrice, salePrice, skuValue, barcodeValue] = watch(["purchasePrice", "salePrice", "sku", "barcode"]);
   const profit = (Number(salePrice) || 0) - (Number(purchasePrice) || 0);
   const margin = Number(purchasePrice) > 0 ? Math.round((profit / Number(purchasePrice)) * 1000) / 10 : 0;
+
+  useEffect(() => {
+    if (!open) return;
+    if (!skuValue) return;
+    if (barcodeValue && barcodeValue !== lastAutoBarcode.current) return; // user typed their own — don't touch it
+    const generated = generateBarcodeFromSku(skuValue);
+    lastAutoBarcode.current = generated;
+    setValue("barcode", generated, { shouldValidate: false, shouldDirty: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skuValue, open]);
 
   return (
     <Drawer
@@ -153,6 +173,9 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
           <div className="field">
             <label className="field-label">{t("products.drawer.barcode")}</label>
             <input className="input" placeholder="4870001234561" {...register("barcode")} />
+            {skuValue && barcodeValue === lastAutoBarcode.current && (
+              <span className="field-hint">{t("products.drawer.barcodeAutoHint")}</span>
+            )}
           </div>
         </div>
 

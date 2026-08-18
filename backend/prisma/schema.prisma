@@ -142,9 +142,11 @@ model Category {
 enum ProductUnit {
   PIECE // даана
   KG
+  GRAM
   LITER
   METER
   PACK
+  BOX // ящик/коробка
 }
 
 enum ProductStatus {

@@ -456,6 +456,7 @@
       "unit": "Өлчөм бирдиги",
       "sku": "SKU",
       "barcode": "Штрих-код",
+      "barcodeAutoHint": "SKU боюнча автоматтык түзүлдү — өзүңүз да өзгөртө аласыз",
       "purchasePrice": "Сатып алуу баасы (сом)",
       "salePrice": "Сатуу баасы (сом)",
       "profit": "Пайда",
@@ -472,7 +473,7 @@
       "purchasePriceRequired": "Сатып алуу баасын жазыңыз",
       "salePriceRequired": "Сатуу баасын жазыңыз"
     },
-    "units": { "PIECE": "даана", "KG": "кг", "LITER": "литр", "METER": "метр", "PACK": "пачка" }
+    "units": { "PIECE": "даана", "KG": "кг", "GRAM": "грамм", "LITER": "литр", "METER": "метр", "PACK": "пачка", "BOX": "ящик" }
   },
   "pos": {
     "searchPlaceholder": "Товар издөө",

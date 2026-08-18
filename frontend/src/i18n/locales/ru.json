@@ -456,6 +456,7 @@
       "unit": "Единица измерения",
       "sku": "SKU",
       "barcode": "Штрих-код",
+      "barcodeAutoHint": "Создан автоматически по SKU — вы можете изменить его сами",
       "purchasePrice": "Цена закупки (сом)",
       "salePrice": "Цена продажи (сом)",
       "profit": "Прибыль",
@@ -472,7 +473,7 @@
       "purchasePriceRequired": "Введите цену закупки",
       "salePriceRequired": "Введите цену продажи"
     },
-    "units": { "PIECE": "шт", "KG": "кг", "LITER": "л", "METER": "м", "PACK": "пачка" }
+    "units": { "PIECE": "шт", "KG": "кг", "GRAM": "г", "LITER": "л", "METER": "м", "PACK": "пачка", "BOX": "ящик" }
   },
   "pos": {
     "searchPlaceholder": "Поиск товара",

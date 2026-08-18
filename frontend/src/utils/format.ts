@@ -29,9 +29,11 @@ export function formatPercent(value: number): string {
 const UNIT_KEYS: Record<string, string> = {
   PIECE: "products.units.PIECE",
   KG: "products.units.KG",
+  GRAM: "products.units.GRAM",
   LITER: "products.units.LITER",
   METER: "products.units.METER",
   PACK: "products.units.PACK",
+  BOX: "products.units.BOX",
 };
 
 export function unitLabel(unit: string): string {

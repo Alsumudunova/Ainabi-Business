@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const productUnitEnum = z.enum(["PIECE", "KG", "LITER", "METER", "PACK"]);
+export const productUnitEnum = z.enum(["PIECE", "KG", "GRAM", "LITER", "METER", "PACK", "BOX"]);
 
 export const productSchema = z.object({
   name: z.string().min(1, "Товар атын жазыңыз"),

@@ -1,7 +1,7 @@
 export type Role = "OWNER" | "ADMIN" | "CASHIER";
 export type EmployeeStatus = "ACTIVE" | "INACTIVE";
 export type PaymentMethod = "CASH" | "CARD" | "QR" | "DEBT";
-export type ProductUnit = "PIECE" | "KG" | "LITER" | "METER" | "PACK";
+export type ProductUnit = "PIECE" | "KG" | "GRAM" | "LITER" | "METER" | "PACK" | "BOX";
 export type ProductStatus = "ACTIVE" | "ARCHIVED";
 export type StockStatus = "OK" | "LOW" | "OUT";
 export type StockMovementType = "IN" | "OUT" | "SALE" | "ADJUSTMENT" | "WRITE_OFF";
