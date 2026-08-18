@@ -461,8 +461,17 @@
 }
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  /* A fixed column count (rather than auto-fit) so a row that doesn't fill
+     completely — 6 cards over 3 columns is the common case — never leaves
+     a lone card stranded at a mismatched width next to empty space. */
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
   gap: var(--space-5);
+}
+@media (max-width: 960px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 @media (max-width: 560px) {
   .kpi-grid {

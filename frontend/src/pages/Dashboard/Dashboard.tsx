@@ -298,7 +298,10 @@ function StockDropdown({ t, products }: { t: TFn; products: Product[] | null }) 
       ) : (
         products.map((p) => (
           <div className="kpi-dropdown-row" key={p.id}>
-            <span className="kpi-dropdown-row-name">{p.name}</span>
+            <span className="kpi-dropdown-row-text">
+              <span className="kpi-dropdown-row-name">{p.name}</span>
+              <span className="kpi-dropdown-row-category">{p.categoryName ?? t("dashboard.stockDropdown.noCategory")}</span>
+            </span>
             <span className="kpi-dropdown-row-value mono-num">
               {formatNumber(p.quantity)} {unitLabel(p.unit)}
             </span>
@@ -324,7 +327,10 @@ function TopProductsDropdown({ t, topProducts }: { t: TFn; topProducts: TopProdu
       ) : (
         topProducts.map((p) => (
           <div className="kpi-dropdown-row" key={p.productId}>
-            <span className="kpi-dropdown-row-name">{p.name}</span>
+            <span className="kpi-dropdown-row-text">
+              <span className="kpi-dropdown-row-name">{p.name}</span>
+              <span className="kpi-dropdown-row-category">{p.categoryName ?? t("dashboard.stockDropdown.noCategory")}</span>
+            </span>
             <span className="kpi-dropdown-row-value mono-num">{formatNumber(p.soldQuantity)}</span>
           </div>
         ))

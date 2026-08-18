@@ -407,7 +407,7 @@
       "revenue": "Выручка"
     },
     "incomeExpense": { "title": "Доход vs Расход", "subtitle": "Последние 7 дней", "income": "Доход", "expense": "Расход" },
-    "stockDropdown": { "title": "Остаток по каждому товару", "empty": "Товаров нет" },
+    "stockDropdown": { "title": "Остаток по каждому товару", "empty": "Товаров нет", "noCategory": "Без категории" },
     "topProductsDropdown": { "title": "Самые продаваемые товары", "empty": "Нет данных" }
   },
   "products": {

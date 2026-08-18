@@ -220,6 +220,7 @@ export interface SalesDynamicsPoint {
 export interface TopProduct {
   productId: string;
   name: string;
+  categoryName: string | null;
   soldQuantity: number;
   revenue: number;
 }

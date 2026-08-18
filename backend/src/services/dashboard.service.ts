@@ -118,12 +118,16 @@ export async function getTopProducts(businessId: string, query: DashboardQuery, 
     take: limit,
   });
 
-  const products = await prisma.product.findMany({ where: { id: { in: items.map((i) => i.productId) } } });
+  const products = await prisma.product.findMany({
+    where: { id: { in: items.map((i) => i.productId) } },
+    include: { category: true },
+  });
   const productMap = new Map(products.map((p) => [p.id, p]));
 
   return items.map((i) => ({
     productId: i.productId,
     name: productMap.get(i.productId)?.name ?? "—",
+    categoryName: productMap.get(i.productId)?.category?.name ?? null,
     soldQuantity: toNumber(i._sum.quantity),
     revenue: toNumber(i._sum.total),
   }));

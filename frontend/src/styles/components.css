@@ -294,9 +294,22 @@
 .kpi-dropdown-row:last-child {
   border-bottom: none;
 }
-.kpi-dropdown-row-name {
+.kpi-dropdown-row-text {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+}
+.kpi-dropdown-row-name {
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kpi-dropdown-row-category {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

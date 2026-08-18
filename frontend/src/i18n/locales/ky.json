@@ -407,7 +407,7 @@
       "revenue": "Киреше"
     },
     "incomeExpense": { "title": "Киреше vs Чыгым", "subtitle": "Акыркы 7 күн", "income": "Киреше", "expense": "Чыгым" },
-    "stockDropdown": { "title": "Ар бир товардын калдыгы", "empty": "Товар жок" },
+    "stockDropdown": { "title": "Ар бир товардын калдыгы", "empty": "Товар жок", "noCategory": "Категориясыз" },
     "topProductsDropdown": { "title": "Эң көп сатылган товарлар", "empty": "Маалымат жок" }
   },
   "products": {

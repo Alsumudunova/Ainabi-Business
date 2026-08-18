@@ -62,10 +62,10 @@ export function KpiCard({ label, value, changePercent, icon: Icon, accent = "pri
   }
 
   return (
-    <div ref={rootRef} style={{ position: "relative" }}>
+    <div ref={rootRef} style={{ position: "relative", height: "100%" }}>
       <div
         className={`card card-pad card-hoverable stack gap-3 animate-in ${dropdown ? "kpi-card-clickable" : ""}`}
-        style={{ animationDelay: `${Math.min(index, 6) * 50}ms` }}
+        style={{ animationDelay: `${Math.min(index, 6) * 50}ms`, height: "100%", boxSizing: "border-box" }}
         onClick={toggle}
         role={dropdown ? "button" : undefined}
         tabIndex={dropdown ? 0 : undefined}
