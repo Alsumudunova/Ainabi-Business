@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { LogOut, Menu, Plus, Settings, User } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
-import { roleLabels } from "../utils/labels";
+import { useLabels } from "../hooks/useLabels";
 import { GlobalSearch } from "./GlobalSearch";
 import { NotificationCenter } from "./NotificationCenter";
+import { LanguageSwitcher } from "../components/LanguageSwitcher";
 
 interface HeaderProps {
   onOpenMobileSidebar: () => void;
 }
 
 export function Header({ onOpenMobileSidebar }: HeaderProps) {
+  const { t } = useTranslation();
   const { session, logout } = useAuth();
+  const labels = useLabels();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -35,7 +39,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
 
   return (
     <header className="header">
-      <button className="header-icon-btn header-mobile-toggle" onClick={onOpenMobileSidebar} aria-label="Меню">
+      <button className="header-icon-btn header-mobile-toggle" onClick={onOpenMobileSidebar} aria-label={t("header.menu")}>
         <Menu size={18} />
       </button>
 
@@ -44,9 +48,11 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
       <div className="spacer" />
 
       <div className="header-actions">
+        <LanguageSwitcher />
+
         <button className="btn btn-primary btn-sm" onClick={() => navigate("/pos")}>
           <Plus size={16} />
-          <span className="quick-sale-label">Тез сатуу</span>
+          <span className="quick-sale-label">{t("header.quickSale")}</span>
         </button>
 
         <NotificationCenter />
@@ -61,7 +67,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
             <div className="stack header-profile-text" style={{ textAlign: "left", lineHeight: 1.2 }}>
               <span style={{ fontSize: "var(--font-size-sm)", fontWeight: 700 }}>{session?.business.name}</span>
               <span style={{ fontSize: "var(--font-size-xs)", color: "var(--color-text-muted)" }}>
-                {session ? roleLabels[session.role] : ""}
+                {session ? labels.role[session.role] : ""}
               </span>
             </div>
           </button>
@@ -87,11 +93,11 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
               </div>
               <button className="sidebar-link" style={{ width: "100%" }} onClick={() => { setProfileOpen(false); navigate("/settings"); }}>
                 <User size={16} />
-                <span>Профиль</span>
+                <span>{t("header.profile")}</span>
               </button>
               <button className="sidebar-link" style={{ width: "100%" }} onClick={() => { setProfileOpen(false); navigate("/settings"); }}>
                 <Settings size={16} />
-                <span>Настройкалар</span>
+                <span>{t("header.settings")}</span>
               </button>
               <button
                 className="sidebar-link"
@@ -103,7 +109,7 @@ export function Header({ onOpenMobileSidebar }: HeaderProps) {
                 }}
               >
                 <LogOut size={16} />
-                <span>Чыгуу</span>
+                <span>{t("header.logout")}</span>
               </button>
             </div>
           )}

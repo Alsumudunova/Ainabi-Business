@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Package, Search, User, X } from "lucide-react";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import * as productService from "../services/product.service";
@@ -8,6 +9,7 @@ import { formatMoney } from "../utils/format";
 import type { Customer, Product } from "../types";
 
 export function GlobalSearch() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -68,7 +70,7 @@ export function GlobalSearch() {
     <div className="header-search" ref={rootRef}>
       <Search size={16} />
       <input
-        placeholder="Товар же кардар издөө..."
+        placeholder={t("header.searchPlaceholder")}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -79,7 +81,7 @@ export function GlobalSearch() {
       {query && (
         <button
           className="header-search-clear"
-          aria-label="Тазалоо"
+          aria-label={t("header.searchClear")}
           onClick={() => {
             setQuery("");
             setProducts([]);
@@ -93,14 +95,14 @@ export function GlobalSearch() {
       {open && query && (
         <div className="header-search-results card animate-in">
           {loading ? (
-            <div className="header-search-empty">Издөөдө...</div>
+            <div className="header-search-empty">{t("header.searching")}</div>
           ) : !hasResults ? (
-            <div className="header-search-empty">Эч нерсе табылган жок</div>
+            <div className="header-search-empty">{t("header.noResults")}</div>
           ) : (
             <>
               {products.length > 0 && (
                 <div className="header-search-group">
-                  <span className="header-search-group-label">Товарлар</span>
+                  <span className="header-search-group-label">{t("header.products")}</span>
                   {products.map((p) => (
                     <button key={p.id} className="header-search-item" onClick={() => goToProduct(p)}>
                       <Package size={15} />
@@ -114,7 +116,7 @@ export function GlobalSearch() {
               )}
               {customers.length > 0 && (
                 <div className="header-search-group">
-                  <span className="header-search-group-label">Кардарлар</span>
+                  <span className="header-search-group-label">{t("header.customers")}</span>
                   {customers.map((c) => (
                     <button key={c.id} className="header-search-item" onClick={() => goToCustomer(c)}>
                       <User size={15} />

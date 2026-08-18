@@ -1,4 +1,6 @@
 import rateLimit from "express-rate-limit";
+import { Request } from "express";
+import { translate } from "../i18n/messages";
 
 /**
  * Keys by businessId instead of IP once a request is authenticated, so one
@@ -13,5 +15,7 @@ export const businessRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => req.auth?.businessId ?? req.ip ?? "unknown",
-  message: { message: "Бул бизнес үчүн сурамдар лимити ашты. Бир аз күтүп, кайра аракет кылыңыз." },
+  message: (req: Request) => ({
+    message: translate("Бул бизнес үчүн сурамдар лимити ашты. Бир аз күтүп, кайра аракет кылыңыз.", req.lang),
+  }),
 });

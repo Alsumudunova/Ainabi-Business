@@ -3,28 +3,31 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { Briefcase, Lock, Mail, Phone, User as UserIcon, UserPlus } from "lucide-react";
 import { BrandPanel } from "./BrandPanel";
 import { GoogleSignInButton } from "../../components/GoogleSignInButton";
+import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import { extractErrorMessage } from "../../services/api";
 import "./Auth.css";
 
-const schema = z.object({
-  name: z.string().min(2, "Атыңызды толук жазыңыз"),
-  businessName: z.string().min(2, "Бизнес атын жазыңыз"),
-  phone: z.string().min(6, "Телефон номерин туура жазыңыз"),
-  email: z.string().email("Email туура эмес"),
-  password: z.string().min(6, "Пароль эң аз дегенде 6 белгиден турушу керек"),
-});
-type FormValues = z.infer<typeof schema>;
-
 export default function Register() {
+  const { t } = useTranslation();
   const { register: registerAccount } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+
+  const schema = z.object({
+    name: z.string().min(2, t("auth.register.nameMin")),
+    businessName: z.string().min(2, t("auth.register.businessNameMin")),
+    phone: z.string().min(6, t("auth.register.phoneMin")),
+    email: z.string().email(t("auth.register.emailInvalid")),
+    password: z.string().min(6, t("auth.register.passwordMin")),
+  });
+  type FormValues = z.infer<typeof schema>;
 
   const {
     register,
@@ -36,10 +39,10 @@ export default function Register() {
     setSubmitting(true);
     try {
       await registerAccount(values);
-      showToast({ variant: "success", title: "Аккаунт түзүлдү!", message: "Ainabi Business'ке кош келиңиз." });
+      showToast({ variant: "success", title: t("auth.register.successTitle"), message: t("auth.register.successMessage") });
       navigate("/dashboard");
     } catch (error) {
-      showToast({ variant: "error", title: "Катталган жок", message: extractErrorMessage(error) });
+      showToast({ variant: "error", title: t("auth.register.errorTitle"), message: extractErrorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -50,36 +53,39 @@ export default function Register() {
       <BrandPanel />
       <div className="auth-form-panel">
         <div className="auth-card">
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <LanguageSwitcher />
+          </div>
           <div className="auth-card-header">
-            <h1 className="auth-title">Бизнесиңизди каттаңыз</h1>
-            <p className="auth-subtitle">2 мүнөттөн азыраак убакытта башталыңыз — карта талап кылынбайт.</p>
+            <h1 className="auth-title">{t("auth.register.title")}</h1>
+            <p className="auth-subtitle">{t("auth.register.subtitle")}</p>
           </div>
 
-          <GoogleSignInButton onSuccess={() => { showToast({ variant: "success", title: "Аккаунт түзүлдү!", message: "Ainabi Business'ке кош келиңиз." }); navigate("/dashboard"); }} />
-          <div className="auth-divider">же email менен катталуу</div>
+          <GoogleSignInButton onSuccess={() => { showToast({ variant: "success", title: t("auth.register.successTitle"), message: t("auth.register.successMessage") }); navigate("/dashboard"); }} />
+          <div className="auth-divider">{t("auth.register.orEmail")}</div>
 
           <form className="stack gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="field">
-              <label className="field-label" htmlFor="name">Атыңыз</label>
+              <label className="field-label" htmlFor="name">{t("auth.register.name")}</label>
               <div className="input-with-icon">
                 <UserIcon size={16} />
-                <input id="name" className={`input ${errors.name ? "has-error" : ""}`} placeholder="Айбек Осмонов" {...register("name")} />
+                <input id="name" className={`input ${errors.name ? "has-error" : ""}`} placeholder={t("auth.register.namePlaceholder")} {...register("name")} />
               </div>
               {errors.name && <span className="field-error">{errors.name.message}</span>}
             </div>
 
             <div className="field">
-              <label className="field-label" htmlFor="businessName">Бизнес аты</label>
+              <label className="field-label" htmlFor="businessName">{t("auth.register.businessName")}</label>
               <div className="input-with-icon">
                 <Briefcase size={16} />
-                <input id="businessName" className={`input ${errors.businessName ? "has-error" : ""}`} placeholder="Мисалы: Ainabi Дүкөн" {...register("businessName")} />
+                <input id="businessName" className={`input ${errors.businessName ? "has-error" : ""}`} placeholder={t("auth.register.businessNamePlaceholder")} {...register("businessName")} />
               </div>
               {errors.businessName && <span className="field-error">{errors.businessName.message}</span>}
             </div>
 
             <div className="form-grid">
               <div className="field">
-                <label className="field-label" htmlFor="phone">Телефон</label>
+                <label className="field-label" htmlFor="phone">{t("auth.register.phone")}</label>
                 <div className="input-with-icon">
                   <Phone size={16} />
                   <input id="phone" className={`input ${errors.phone ? "has-error" : ""}`} placeholder="+996 700 123 456" {...register("phone")} />
@@ -87,7 +93,7 @@ export default function Register() {
                 {errors.phone && <span className="field-error">{errors.phone.message}</span>}
               </div>
               <div className="field">
-                <label className="field-label" htmlFor="email">Email</label>
+                <label className="field-label" htmlFor="email">{t("auth.register.email")}</label>
                 <div className="input-with-icon">
                   <Mail size={16} />
                   <input id="email" type="email" className={`input ${errors.email ? "has-error" : ""}`} placeholder="you@example.com" {...register("email")} />
@@ -97,22 +103,22 @@ export default function Register() {
             </div>
 
             <div className="field">
-              <label className="field-label" htmlFor="password">Пароль</label>
+              <label className="field-label" htmlFor="password">{t("auth.register.password")}</label>
               <div className="input-with-icon">
                 <Lock size={16} />
-                <input id="password" type="password" className={`input ${errors.password ? "has-error" : ""}`} placeholder="Эң аз 6 белги" {...register("password")} />
+                <input id="password" type="password" className={`input ${errors.password ? "has-error" : ""}`} placeholder={t("auth.register.passwordPlaceholder")} {...register("password")} />
               </div>
               {errors.password && <span className="field-error">{errors.password.message}</span>}
             </div>
 
             <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={submitting}>
               <UserPlus size={18} />
-              {submitting ? "Катталууда..." : "Аккаунт түзүү"}
+              {submitting ? t("auth.register.submitting") : t("auth.register.submit")}
             </button>
           </form>
 
           <p className="auth-footer-note">
-            Аккаунтуңуз барбы? <Link to="/login">Кирүү</Link>
+            {t("auth.register.haveAccount")} <Link to="/login">{t("auth.register.login")}</Link>
           </p>
         </div>
       </div>

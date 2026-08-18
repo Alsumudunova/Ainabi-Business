@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { emitAuthLogout, tokenStore } from "./tokenStore";
+import { LANGUAGE_HEADER, LANGUAGE_STORAGE_KEY } from "../i18n";
 import type { AuthResponse } from "../types";
 
 // In local dev this stays "/api" and Vite's dev-server proxy forwards it to
@@ -20,6 +21,13 @@ api.interceptors.request.use((config) => {
   const token = tokenStore.getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  // Read straight from localStorage (not the i18next instance) to avoid a
+  // circular import between api.ts and i18n/index.ts — this key is the
+  // same one i18next-browser-languagedetector reads/writes.
+  const lang = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  if (lang) {
+    config.headers[LANGUAGE_HEADER] = lang;
   }
   return config;
 });

@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
+import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import "./Legal.css";
 
 export default function Terms() {
+  const { t } = useTranslation();
+
   return (
     <div className="legal-page">
       <nav className="legal-nav">
@@ -10,57 +14,51 @@ export default function Terms() {
           <span className="legal-brand-mark">AB</span>
           <span>Ainabi Business</span>
         </div>
-        <Link to="/" className="btn btn-ghost">
-          <ArrowLeft size={16} /> Башкы бетке
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+          <LanguageSwitcher />
+          <Link to="/" className="btn btn-ghost">
+            <ArrowLeft size={16} /> {t("legal.backHome")}
+          </Link>
+        </div>
       </nav>
 
       <div className="legal-content">
-        <h1>Колдонуу шарттары</h1>
-        <p className="legal-updated">Акыркы жаңыртылган: 2026-жылдын августу</p>
+        <h1>{t("legal.terms.title")}</h1>
+        <p className="legal-updated">{t("legal.updated")}</p>
 
-        <p>
-          Ainabi Business системасын колдонуу менен сиз төмөнкү шарттарды кабыл аласыз. Сураныч, колдонордон
-          мурун толук окуп чыгыңыз.
-        </p>
+        <p>{t("legal.terms.intro")}</p>
 
-        <h2>1. Кызматтын мүнөзү</h2>
-        <p>
-          Ainabi Business — товар, склад, сатуу жана бизнес эсебин башкарууга арналган веб-система. Система
-          учурда активдүү өнүктүрүлүп жатат, ошондуктан кээ бир функциялар өзгөрүшү же жаңыланышы мүмкүн.
-        </p>
+        <h2>{t("legal.terms.s1Title")}</h2>
+        <p>{t("legal.terms.s1Text")}</p>
 
-        <h2>2. Аккаунт жоопкерчилиги</h2>
+        <h2>{t("legal.terms.s2Title")}</h2>
         <ul>
-          <li>Каттоо учурунда берген маалымат так болушу керек.</li>
-          <li>Пароліңизди үчүнчү жакка бербеңиз — аккаунтуңуздагы бардык аракет үчүн сиз жоопкерсиз.</li>
-          <li>Кызматкер кошсоңуз, алардын аракети да сиздин бизнесиңиздин алкагында эсептелет.</li>
+          <li>{t("legal.terms.s2Item1")}</li>
+          <li>{t("legal.terms.s2Item2")}</li>
+          <li>{t("legal.terms.s2Item3")}</li>
         </ul>
 
-        <h2>3. Маалыматыңыз сиздики</h2>
+        <h2>{t("legal.terms.s3Title")}</h2>
+        <p>{t("legal.terms.s3Text")}</p>
+
+        <h2>{t("legal.terms.s4Title")}</h2>
+        <p>{t("legal.terms.s4Text")}</p>
+
+        <h2>{t("legal.terms.s5Title")}</h2>
+        <p>{t("legal.terms.s5Text")}</p>
+
+        <h2>{t("legal.terms.s6Title")}</h2>
+        <p>{t("legal.terms.s6Text")}</p>
+
+        <h2>{t("legal.terms.s7Title")}</h2>
         <p>
-          Системага киргизген бардык бизнес маалымат (товар, сатуу, кардар ж.б.) толугу менен сизге таандык.
-          Биз аны сиздин уруксатыңызсыз үчүнчү жакка бербейбиз (Купуялык саясатын караңыз).
-        </p>
-
-        <h2>4. Туура эмес колдонуу</h2>
-        <p>Системаны мыйзамсыз максатта, башка колдонуучунун маалыматына уруксатсыз кирүү үчүн же кызматтын иштешине зыян келтирүү үчүн колдонууга болбойт.</p>
-
-        <h2>5. Кепилдиктин чеги</h2>
-        <p>
-          Система "болгон түрүндө" (as-is) сунушталат. Биз системанын үзгүлтүксүз, катасыз иштешине аракет
-          кылабыз, бирок 100% кепилдик бере албайбыз. Маанилүү маалыматыңызды мезгили-мезгили менен өзүңүз да
-          сактап тураарыңызды сунуштайбыз.
-        </p>
-
-        <h2>6. Аккаунтту токтотуу</h2>
-        <p>Сиз каалаган убакта аккаунтуңузду өчүрүүнү сурай аласыз. Биз да, шарттар бузулган учурда, аккаунтту токтотуу укугун сактайбыз.</p>
-
-        <h2>7. Байланыш</h2>
-        <p>
-          Суроолор боюнча:{" "}
-          <a href="https://wa.me/996702952200" target="_blank" rel="noopener noreferrer">WhatsApp</a> же{" "}
-          <a href="https://instagram.com/ainabi.studio" target="_blank" rel="noopener noreferrer">Instagram</a>.
+          <Trans
+            i18nKey="legal.terms.s7Text"
+            components={{
+              whatsapp: <a href="https://wa.me/996702952200" target="_blank" rel="noopener noreferrer" />,
+              instagram: <a href="https://instagram.com/ainabi.studio" target="_blank" rel="noopener noreferrer" />,
+            }}
+          />
         </p>
       </div>
     </div>

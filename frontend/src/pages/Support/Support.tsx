@@ -1,15 +1,19 @@
 import { Instagram, LifeBuoy, MessageCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { GuideAccordion } from "../../components/GuideAccordion";
-import { GUIDE_SECTIONS } from "../../data/guideSections";
+import { useGuideSections } from "../../data/guideSections";
 import "./Support.css";
 
 export default function Support() {
+  const { t } = useTranslation();
+  const guideSections = useGuideSections();
+
   return (
     <div className="stack gap-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Колдоо</h1>
-          <p className="page-subtitle">Суроо же маселе болсо — биз жардам берүүгө даярбыз.</p>
+          <h1 className="page-title">{t("support.title")}</h1>
+          <p className="page-subtitle">{t("support.subtitle")}</p>
         </div>
       </div>
 
@@ -50,13 +54,13 @@ export default function Support() {
           <div>
             <h2 className="card-title">
               <LifeBuoy size={16} style={{ marginRight: 6, verticalAlign: -2 }} />
-              Колдонуу гиди
+              {t("support.guideTitle")}
             </h2>
-            <p className="card-subtitle">Ар бир бөлүктү кантип колдонсоңуз болорун бул жерден кадам-кадам окуп чыгыңыз.</p>
+            <p className="card-subtitle">{t("support.guideSubtitle")}</p>
           </div>
         </div>
         <div className="card-pad">
-          <GuideAccordion sections={GUIDE_SECTIONS} />
+          <GuideAccordion sections={guideSections} />
         </div>
       </div>
     </div>

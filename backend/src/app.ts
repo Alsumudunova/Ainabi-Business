@@ -7,12 +7,17 @@ import rateLimit from "express-rate-limit";
 import { env, isProduction } from "./config/env";
 import routes from "./routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { detectLanguage } from "./middleware/language";
+import { translate } from "./i18n/messages";
 import { ApiError } from "./utils/ApiError";
 
 const app = express();
 
 app.set("trust proxy", 1);
 app.use(helmet());
+// Before cors() so req.lang is set even when a request gets rejected by the
+// origin check below (its error still needs a translated message).
+app.use(detectLanguage);
 // credentials: true + a checked allow-list (never "*") — required so the
 // httpOnly refresh-token cookie is accepted cross-origin (Vercel frontend
 // calling a Railway/Render backend, or localhost during dev).
@@ -39,13 +44,18 @@ const authBruteForceLimiter = rateLimit({
   limit: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Аракеттер өтө көп болду. Бир аз күтүп, кайра аракет кылыңыз." },
+  message: (req: express.Request) => ({
+    message: translate("Аракеттер өтө көп болду. Бир аз күтүп, кайра аракет кылыңыз.", req.lang),
+  }),
 });
 app.use(["/api/auth/login", "/api/auth/register", "/api/auth/google"], authBruteForceLimiter);
 
 // Looser limit across the whole API — defense-in-depth without getting in the
 // way of a busy cashier terminal hammering /sales and /products all day.
-app.use("/api", rateLimit({ windowMs: 15 * 60 * 1000, limit: 1200, standardHeaders: true, legacyHeaders: false }));
+app.use(
+  "/api",
+  rateLimit({ windowMs: 15 * 60 * 1000, limit: 1200, standardHeaders: true, legacyHeaders: false }),
+);
 
 app.get("/health", (_req, res) => res.json({ status: "ok", service: "Ainabi Business API" }));
 

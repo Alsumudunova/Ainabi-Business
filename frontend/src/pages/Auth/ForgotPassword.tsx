@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Mail, MoveLeft } from "lucide-react";
 import { BrandPanel } from "./BrandPanel";
 import "./Auth.css";
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [sent, setSent] = useState(false);
   const [email, setEmail] = useState("");
 
@@ -16,8 +18,8 @@ export default function ForgotPassword() {
           {!sent ? (
             <>
               <div className="auth-card-header">
-                <h1 className="auth-title">Паролду калыбына келтирүү</h1>
-                <p className="auth-subtitle">Email дарегиңизди жазыңыз — колдоо кызматыбыз сиз менен байланышат.</p>
+                <h1 className="auth-title">{t("auth.forgotPassword.title")}</h1>
+                <p className="auth-subtitle">{t("auth.forgotPassword.subtitle")}</p>
               </div>
               <form
                 className="stack gap-4"
@@ -27,14 +29,14 @@ export default function ForgotPassword() {
                 }}
               >
                 <div className="field">
-                  <label className="field-label" htmlFor="email">Email</label>
+                  <label className="field-label" htmlFor="email">{t("auth.login.email")}</label>
                   <div className="input-with-icon">
                     <Mail size={16} />
                     <input id="email" type="email" className="input" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
                   </div>
                 </div>
                 <button type="submit" className="btn btn-primary btn-lg btn-block">
-                  Сурам жиберүү
+                  {t("auth.forgotPassword.submit")}
                 </button>
               </form>
             </>
@@ -43,15 +45,13 @@ export default function ForgotPassword() {
               <div className="empty-state-icon confirm-icon-neutral" style={{ marginBottom: 0 }}>
                 <Mail size={24} />
               </div>
-              <h1 className="auth-title">Сурам кабыл алынды</h1>
-              <p className="auth-subtitle">
-                {email} дарегине көрсөтмөлөр жиберилет. Тез арада колдоо кызматыбыз сиз менен байланышат.
-              </p>
+              <h1 className="auth-title">{t("auth.forgotPassword.sentTitle")}</h1>
+              <p className="auth-subtitle">{t("auth.forgotPassword.sentMessage", { email })}</p>
             </div>
           )}
 
           <Link to="/login" className="auth-footer-note" style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "center" }}>
-            <MoveLeft size={14} /> Кирүү бетине кайтуу
+            <MoveLeft size={14} /> {t("auth.forgotPassword.backToLogin")}
           </Link>
         </div>
       </div>

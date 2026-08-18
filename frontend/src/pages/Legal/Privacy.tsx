@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
+import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import "./Legal.css";
 
 export default function Privacy() {
+  const { t } = useTranslation();
+
   return (
     <div className="legal-page">
       <nav className="legal-nav">
@@ -10,62 +14,64 @@ export default function Privacy() {
           <span className="legal-brand-mark">AB</span>
           <span>Ainabi Business</span>
         </div>
-        <Link to="/" className="btn btn-ghost">
-          <ArrowLeft size={16} /> Башкы бетке
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+          <LanguageSwitcher />
+          <Link to="/" className="btn btn-ghost">
+            <ArrowLeft size={16} /> {t("legal.backHome")}
+          </Link>
+        </div>
       </nav>
 
       <div className="legal-content">
-        <h1>Купуялык саясаты</h1>
-        <p className="legal-updated">Акыркы жаңыртылган: 2026-жылдын августу</p>
+        <h1>{t("legal.privacy.title")}</h1>
+        <p className="legal-updated">{t("legal.updated")}</p>
 
-        <p>
-          Бул баракта Ainabi Business системасы кандай маалыматты чогултарын, аны кандай сактап, кандай
-          максатта колдонорун так айтабыз. Системаны колдонуу менен сиз ушул шарттарды кабыл аласыз.
-        </p>
+        <p>{t("legal.privacy.intro")}</p>
 
-        <h2>1. Кандай маалымат чогултулат</h2>
+        <h2>{t("legal.privacy.s1Title")}</h2>
         <ul>
-          <li><strong>Аккаунт маалыматы:</strong> атыңыз, email дарегиңиз, телефон номериңиз, пароль (шифрленген түрдө сакталат — эч ким, биз да, аны ачык окуй албайбыз).</li>
-          <li><strong>Google менен кирсеңиз:</strong> Google'дон атыңыз, email жана профиль сүрөтүңүз алынат — башка эч нерсе (Gmail, Drive ж.б.) сурала турбайт.</li>
-          <li><strong>Бизнес маалыматы:</strong> бизнесиңиздин аты, дареги, телефону.</li>
-          <li><strong>Иш маалыматы:</strong> сиз киргизген товар, сатуу, кардар, жеткирүүчү, карыз жана чыгым жазуулары.</li>
+          <li><strong>{t("legal.privacy.s1Account")}</strong> {t("legal.privacy.s1AccountText")}</li>
+          <li><strong>{t("legal.privacy.s1Google")}</strong> {t("legal.privacy.s1GoogleText")}</li>
+          <li><strong>{t("legal.privacy.s1Business")}</strong> {t("legal.privacy.s1BusinessText")}</li>
+          <li><strong>{t("legal.privacy.s1Ops")}</strong> {t("legal.privacy.s1OpsText")}</li>
         </ul>
 
-        <h2>2. Маалымат кандай максатта колдонулат</h2>
-        <p>Чогултулган маалымат так гана системанын өзүн иштетүү үчүн колдонулат: аккаунтуңузду ырастоо, сиздин бизнесиңиздин маалыматын көрсөтүү жана сактоо. Биз маалыматыңызды үчүнчү жакка сатпайбыз, жарнама үчүн колдонбойбуз.</p>
+        <h2>{t("legal.privacy.s2Title")}</h2>
+        <p>{t("legal.privacy.s2Text")}</p>
 
-        <h2>3. Маалымат кайда сакталат</h2>
-        <p>Маалыматтарыңыз коопсуз PostgreSQL базасында (Neon инфраструктурасында), ал эми система өзү Vercel платформасында иштейт. Байланыш HTTPS аркылуу шифрленет.</p>
+        <h2>{t("legal.privacy.s3Title")}</h2>
+        <p>{t("legal.privacy.s3Text")}</p>
 
-        <h2>4. Маалыматтарды бөлүшүү</h2>
-        <p>Биз маалыматыңызды төмөнкү кызматтарга гана, так системанын иштеши үчүн берилет:</p>
+        <h2>{t("legal.privacy.s4Title")}</h2>
+        <p>{t("legal.privacy.s4Text")}</p>
         <ul>
-          <li><strong>Google</strong> — Google менен кирүү функциясы үчүн (эгер колдонсоңуз).</li>
-          <li><strong>Neon (PostgreSQL хостинг)</strong> — маалыматтарды сактоо үчүн.</li>
-          <li><strong>Vercel</strong> — системаны интернетте иштетүү үчүн.</li>
+          <li><strong>{t("legal.privacy.s4Google")}</strong> {t("legal.privacy.s4GoogleText")}</li>
+          <li><strong>{t("legal.privacy.s4Neon")}</strong> {t("legal.privacy.s4NeonText")}</li>
+          <li><strong>{t("legal.privacy.s4Vercel")}</strong> {t("legal.privacy.s4VercelText")}</li>
         </ul>
 
-        <h2>5. Cookie файлдар</h2>
-        <p>
-          Биз бир гана техникалык максаттагы cookie колдонобуз — сессияңызды коопсуз кармап туруу үчүн
-          (httpOnly, JavaScript'тен көрүнбөйт). Изилдөө/жарнама cookie'лерин колдонбойбуз.
-        </p>
+        <h2>{t("legal.privacy.s5Title")}</h2>
+        <p>{t("legal.privacy.s5Text")}</p>
 
-        <h2>6. Сиздин укуктарыңыз</h2>
-        <p>Каалаган убакта:</p>
+        <h2>{t("legal.privacy.s6Title")}</h2>
+        <p>{t("legal.privacy.s6Intro")}</p>
         <ul>
-          <li>Профилиңиздеги маалыматты Настройкалар бөлүмүнөн өзгөртө аласыз.</li>
-          <li>Аккаунтуңузду жана бардык маалыматыңызды толук өчүрүүнү сурай аласыз.</li>
-          <li>Маалыматыңыздын көчүрмөсүн сурай аласыз.</li>
+          <li>{t("legal.privacy.s6Item1")}</li>
+          <li>{t("legal.privacy.s6Item2")}</li>
+          <li>{t("legal.privacy.s6Item3")}</li>
         </ul>
         <p>
-          Бул үчүн бизге <a href="https://wa.me/996702952200" target="_blank" rel="noopener noreferrer">WhatsApp</a> же{" "}
-          <a href="https://instagram.com/ainabi.studio" target="_blank" rel="noopener noreferrer">Instagram</a> аркылуу кайрылыңыз.
+          <Trans
+            i18nKey="legal.privacy.s6Contact"
+            components={{
+              whatsapp: <a href="https://wa.me/996702952200" target="_blank" rel="noopener noreferrer" />,
+              instagram: <a href="https://instagram.com/ainabi.studio" target="_blank" rel="noopener noreferrer" />,
+            }}
+          />
         </p>
 
-        <h2>7. Өзгөртүүлөр</h2>
-        <p>Бул саясат убакыттын өтүшү менен жаңыртылышы мүмкүн. Маанилүү өзгөртүүлөр болсо, системада билдирүү берилет.</p>
+        <h2>{t("legal.privacy.s7Title")}</h2>
+        <p>{t("legal.privacy.s7Text")}</p>
       </div>
     </div>
   );

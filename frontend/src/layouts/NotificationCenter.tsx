@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, Bell, PackageX, Wallet } from "lucide-react";
 import * as dashboardService from "../services/dashboard.service";
 import * as debtService from "../services/debt.service";
@@ -17,6 +18,7 @@ interface NotificationItem {
 }
 
 export function NotificationCenter() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -63,7 +65,7 @@ export function NotificationCenter() {
     items.push({
       id: "out-of-stock",
       icon: PackageX,
-      title: `${outOfStock.length} товар запаста жок`,
+      title: t("header.outOfStock", { count: outOfStock.length }),
       subtitle: outOfStock.slice(0, 3).map((p) => p.name).join(", "),
       to: "/stock",
       variant: "danger",
@@ -73,7 +75,7 @@ export function NotificationCenter() {
     items.push({
       id: "low-stock",
       icon: AlertTriangle,
-      title: `${lowOnly.length} товар аз калды`,
+      title: t("header.lowStock", { count: lowOnly.length }),
       subtitle: lowOnly.slice(0, 3).map((p) => p.name).join(", "),
       to: "/stock",
       variant: "warning",
@@ -83,8 +85,8 @@ export function NotificationCenter() {
     items.push({
       id: "customer-debt",
       icon: Wallet,
-      title: "Кардарлардын карызы бар",
-      subtitle: `Жалпы: ${formatMoney(customerDebtTotal)}`,
+      title: t("header.customerDebt"),
+      subtitle: t("header.total", { amount: formatMoney(customerDebtTotal) }),
       to: "/debts",
       variant: "warning",
     });
@@ -93,8 +95,8 @@ export function NotificationCenter() {
     items.push({
       id: "supplier-debt",
       icon: Wallet,
-      title: "Жеткирүүчүлөргө карызыңыз бар",
-      subtitle: `Жалпы: ${formatMoney(supplierDebtTotal)}`,
+      title: t("header.supplierDebt"),
+      subtitle: t("header.total", { amount: formatMoney(supplierDebtTotal) }),
       to: "/suppliers",
       variant: "warning",
     });
@@ -102,7 +104,7 @@ export function NotificationCenter() {
 
   return (
     <div style={{ position: "relative" }} ref={rootRef}>
-      <button className="header-icon-btn" aria-label="Билдирүүлөр" onClick={() => setOpen((v) => !v)}>
+      <button className="header-icon-btn" aria-label={t("header.notifications")} onClick={() => setOpen((v) => !v)}>
         <Bell size={17} />
         {items.length > 0 && <span className="header-icon-dot pulse-danger" />}
       </button>
@@ -110,12 +112,12 @@ export function NotificationCenter() {
       {open && (
         <div className="card animate-in notification-panel">
           <div className="notification-panel-header">
-            <span style={{ fontWeight: 700 }}>Билдирүүлөр</span>
+            <span style={{ fontWeight: 700 }}>{t("header.notifications")}</span>
           </div>
           {loading && items.length === 0 ? (
-            <div className="header-search-empty">Жүктөлүүдө...</div>
+            <div className="header-search-empty">{t("header.notificationsLoading")}</div>
           ) : items.length === 0 ? (
-            <div className="header-search-empty">Азырынча билдирүү жок — баары жайында.</div>
+            <div className="header-search-empty">{t("header.notificationsEmpty")}</div>
           ) : (
             <div>
               {items.map((item) => (

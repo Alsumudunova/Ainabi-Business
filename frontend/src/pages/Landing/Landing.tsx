@@ -1,4 +1,5 @@
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   BarChart3,
@@ -17,110 +18,28 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { GuideAccordion } from "../../components/GuideAccordion";
-import { GUIDE_SECTIONS } from "../../data/guideSections";
+import { LanguageSwitcher } from "../../components/LanguageSwitcher";
+import { useGuideSections } from "../../data/guideSections";
 import "./Landing.css";
 
-const PROBLEMS = [
-  {
-    before: "Тетрадка жазган карызды кимдир бирөө төлөдүбү, унутуп каласызбы?",
-    after: "Ар бир кардардын карызы автоматтык эсепте — качан, канча төлөгөнү дайыма так көрүнөт.",
-  },
-  {
-    before: "Складда кайсы товар канча калганын так билбейсизби?",
-    after: "Ар бир сатуудан кийин склад өзү азаят, аз калган товарды дароо көрөсүз.",
-  },
-  {
-    before: "Айдын аягында чыныгы пайда канча болгонун эсептеп чыга албай жатасызбы?",
-    after: "Дашборд ар дайым так сатуу, чыгым, пайда көрсөтөт — кол менен эсептөөнүн кереги жок.",
-  },
-  {
-    before: "Кызматкериңиз канча сатты, эмне кылганын билбейсизби?",
-    after: "Ар бир кызматкердин сатуусу өзүнчө эсепте — ким эмне кылганы дайыма көрүнөт.",
-  },
-  {
-    before: "Жеткирүүчүгө канча карыз экениңизди унутуп каласызбы?",
-    after: "Жеткирүүчүлөр бөлүмү канча алганыңызды, канча төлөгөнүңүздү так эсепте кармайт.",
-  },
-  {
-    before: "Дүкөндүн абалын билүү үчүн ар дайым жерге барышыңыз керекпи?",
-    after: "Телефон же компьютерден, кайдан болсо да — бизнесиңизди толук көрөсүз.",
-  },
-];
+interface Problem { before: string; after: string }
+interface Feature { title: string; text: string }
+interface Step { title: string; text: string }
+interface DailyItem { title: string; text: string }
 
-const DAILY_USE = [
-  {
-    icon: LayoutDashboard,
-    title: "Күндү Дашборддон баштаңыз",
-    text: "Бүгүнкү сатуу, пайда жана аз калган товарды бир караганда көрөсүз.",
-  },
-  {
-    icon: ShoppingCart,
-    title: "Сатуу учурунда — Тез сатуу (POS)",
-    text: "Товарды тандап, төлөм ыкмасын басып, бир нече секундда сатууну аяктайсыз.",
-  },
-  {
-    icon: Warehouse,
-    title: "Товар келгенде — Склад",
-    text: "Жаңы келген товарды «Киреше» катары катташыз — баа жана калдык өзү жаңырат.",
-  },
-  {
-    icon: BarChart3,
-    title: "Күн аягында — Отчеттор",
-    text: "Канча сатылганын, кандай пайда тапканыңызды бир көз чаптырып текшересиз.",
-  },
-];
-
-const FEATURES = [
-  {
-    icon: Package,
-    title: "Товарлар",
-    text: "Товар, категория, штрих-код, сатып алуу жана сатуу баасын бир жерден башкарыңыз. Пайда автоматтык эсептелет.",
-  },
-  {
-    icon: ShoppingCart,
-    title: "Тез сатуу (POS)",
-    text: "Кассада бир нече кликте сатуу — штрих-код менен издөө, накталай/карта/QR/карыз төлөм ыкмалары.",
-  },
-  {
-    icon: Warehouse,
-    title: "Склад көзөмөлү",
-    text: "Ар бир сатуудан кийин склад автоматтык азаят. Аз калган товар боюнча эскертүү аласыз.",
-  },
-  {
-    icon: Users,
-    title: "Кардарлар",
-    text: "Ар бир кардардын сатып алуу тарыхын, байланышын бир жерден көрүп, башкарыңыз.",
-  },
-  {
-    icon: Wallet,
-    title: "Карыз дептери",
-    text: "Ким канча карыз экенин, качан төлөгөнүн так эсепте кармаңыз — блокнотко муктаж болбойсуз.",
-  },
-  {
-    icon: BarChart3,
-    title: "Отчеттор",
-    text: "Күндөлүк, жумалык, айлык отчеттор — сатуу, пайда, чыгым бир караганда көрүнөт.",
-  },
-];
-
-const STEPS = [
-  {
-    title: "Катталыңыз",
-    text: "Аты жана бизнесиңиздин атын киргизиңиз, же Google аккаунтуңуз менен бир кликте кириңиз.",
-  },
-  {
-    title: "Товарларыңызды кошуңуз",
-    text: "Товардын атын, баасын, санын киргизиңиз — биринчи товарды 1 мүнөттө кошосуз.",
-  },
-  {
-    title: "Сатууну баштаңыз",
-    text: "Тез сатуу (POS) экраны аркылуу кассада сатып, калганын система өзү эсептейт.",
-  },
-];
+const FEATURE_ICONS = [Package, ShoppingCart, Warehouse, Users, Wallet, BarChart3];
+const DAILY_ICONS = [LayoutDashboard, ShoppingCart, Warehouse, BarChart3];
 
 export default function Landing() {
+  const { t } = useTranslation();
   const { session, isLoading } = useAuth();
   const navigate = useNavigate();
+  const guideSections = useGuideSections();
+
+  const problems = t("landing.problems.items", { returnObjects: true }) as Problem[];
+  const features = t("landing.features.items", { returnObjects: true }) as Feature[];
+  const steps = t("landing.steps.items", { returnObjects: true }) as Step[];
+  const dailyUse = t("landing.daily.items", { returnObjects: true }) as DailyItem[];
 
   // Already signed in — no reason to see the marketing page every visit.
   if (!isLoading && session) {
@@ -135,11 +54,12 @@ export default function Landing() {
           <span>Ainabi Business</span>
         </div>
         <div className="landing-nav-actions">
+          <LanguageSwitcher />
           <button className="btn btn-ghost" onClick={() => navigate("/login")}>
-            Кирүү
+            {t("landing.nav.login")}
           </button>
           <button className="btn btn-primary" onClick={() => navigate("/register")}>
-            Катталуу
+            {t("landing.nav.register")}
           </button>
         </div>
       </nav>
@@ -147,30 +67,27 @@ export default function Landing() {
       <section className="landing-hero">
         <div>
           <span className="landing-eyebrow">
-            <Zap size={13} /> Кыргызстандагы бизнес үчүн жасалган
+            <Zap size={13} /> {t("landing.hero.eyebrow")}
           </span>
-          <h1>Дүкөнүңүздү бир жерден толук башкарыңыз</h1>
-          <p className="landing-hero-subtitle">
-            Товар, сатуу, склад, кардар жана карыз эсебин заманбап, жөнөкөй системада алып барыңыз. Компьютерди
-            жакшы билбесеңиз да, 1-2 мүнөттө негизги функцияларды үйрөнөсүз.
-          </p>
+          <h1>{t("landing.hero.title")}</h1>
+          <p className="landing-hero-subtitle">{t("landing.hero.subtitle")}</p>
           <div className="landing-hero-actions">
             <button className="btn btn-primary btn-lg" onClick={() => navigate("/register")}>
-              Акысыз баштоо <ArrowRight size={18} />
+              {t("landing.hero.ctaPrimary")} <ArrowRight size={18} />
             </button>
             <button className="btn btn-secondary btn-lg" onClick={() => navigate("/login")}>
-              Аккаунтум бар, кирем
+              {t("landing.hero.ctaSecondary")}
             </button>
           </div>
           <div className="landing-hero-points">
             <span className="landing-hero-point">
-              <CheckCircle2 size={16} /> Карта талап кылынбайт
+              <CheckCircle2 size={16} /> {t("landing.hero.point1")}
             </span>
             <span className="landing-hero-point">
-              <CheckCircle2 size={16} /> 2 мүнөттө баштайсыз
+              <CheckCircle2 size={16} /> {t("landing.hero.point2")}
             </span>
             <span className="landing-hero-point">
-              <CheckCircle2 size={16} /> Кыргызча интерфейс
+              <CheckCircle2 size={16} /> {t("landing.hero.point3")}
             </span>
           </div>
         </div>
@@ -181,11 +98,11 @@ export default function Landing() {
 
       <section className="landing-section">
         <div className="landing-section-header">
-          <h2 className="landing-section-title">Кандай маселелерди чечет?</h2>
-          <p className="landing-section-subtitle">Кыргызстандагы дүкөн ээлеринин күнүмдүк баш оорусун тааныйсызбы?</p>
+          <h2 className="landing-section-title">{t("landing.problems.title")}</h2>
+          <p className="landing-section-subtitle">{t("landing.problems.subtitle")}</p>
         </div>
         <div className="landing-problems">
-          {PROBLEMS.map((p) => (
+          {problems.map((p) => (
             <div className="landing-problem-row" key={p.before}>
               <div className="landing-problem-before">
                 <X size={16} />
@@ -203,29 +120,32 @@ export default function Landing() {
 
       <section className="landing-section">
         <div className="landing-section-header">
-          <h2 className="landing-section-title">Эмне үчүн Ainabi Business?</h2>
-          <p className="landing-section-subtitle">Бизнесиңизди жүргүзүү үчүн керектүүнүн баары — бир жерде.</p>
+          <h2 className="landing-section-title">{t("landing.features.title")}</h2>
+          <p className="landing-section-subtitle">{t("landing.features.subtitle")}</p>
         </div>
         <div className="landing-features">
-          {FEATURES.map((f) => (
-            <div className="landing-feature-card" key={f.title}>
-              <div className="landing-feature-icon">
-                <f.icon size={22} />
+          {features.map((f, i) => {
+            const Icon = FEATURE_ICONS[i];
+            return (
+              <div className="landing-feature-card" key={f.title}>
+                <div className="landing-feature-icon">
+                  <Icon size={22} />
+                </div>
+                <h3>{f.title}</h3>
+                <p>{f.text}</p>
               </div>
-              <h3>{f.title}</h3>
-              <p>{f.text}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
       <section className="landing-section">
         <div className="landing-section-header">
-          <h2 className="landing-section-title">Кантип башталат?</h2>
-          <p className="landing-section-subtitle">Үч жөнөкөй кадам — техникалык билим талап кылынбайт.</p>
+          <h2 className="landing-section-title">{t("landing.steps.title")}</h2>
+          <p className="landing-section-subtitle">{t("landing.steps.subtitle")}</p>
         </div>
         <div className="landing-steps">
-          {STEPS.map((s, i) => (
+          {steps.map((s, i) => (
             <div className="landing-step" key={s.title}>
               <div className="landing-step-number">{i + 1}</div>
               <h3>{s.title}</h3>
@@ -237,42 +157,42 @@ export default function Landing() {
 
       <section className="landing-section">
         <div className="landing-section-header">
-          <h2 className="landing-section-title">Күн сайын кантип колдоносуз?</h2>
-          <p className="landing-section-subtitle">Катталгандан кийин, дүкөнүңүздүн күнү мына ушундай өтөт.</p>
+          <h2 className="landing-section-title">{t("landing.daily.title")}</h2>
+          <p className="landing-section-subtitle">{t("landing.daily.subtitle")}</p>
         </div>
         <div className="landing-daily">
-          {DAILY_USE.map((d, i) => (
-            <div className="landing-daily-item" key={d.title}>
-              <div className="landing-daily-icon">
-                <d.icon size={20} />
+          {dailyUse.map((d, i) => {
+            const Icon = DAILY_ICONS[i];
+            return (
+              <div className="landing-daily-item" key={d.title}>
+                <div className="landing-daily-icon">
+                  <Icon size={20} />
+                </div>
+                <div className="landing-daily-body">
+                  <span className="landing-daily-step">{t("landing.daily.step", { n: i + 1 })}</span>
+                  <h3>{d.title}</h3>
+                  <p>{d.text}</p>
+                </div>
               </div>
-              <div className="landing-daily-body">
-                <span className="landing-daily-step">Кадам {i + 1}</span>
-                <h3>{d.title}</h3>
-                <p>{d.text}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
       <section className="landing-section">
         <div className="landing-section-header">
-          <h2 className="landing-section-title">Толук колдонуу гиди</h2>
-          <p className="landing-section-subtitle">
-            Компьютерди жакшы билбесеңиз да, тынчсызданбаңыз — ар бир бөлүктү кантип колдонсоңуз болорун
-            бул жерден кадам-кадам окуп чыгыңыз. Бөлүмдүн атын басып ачыңыз.
-          </p>
+          <h2 className="landing-section-title">{t("landing.guide.title")}</h2>
+          <p className="landing-section-subtitle">{t("landing.guide.subtitle")}</p>
         </div>
-        <GuideAccordion sections={GUIDE_SECTIONS} />
+        <GuideAccordion sections={guideSections} />
       </section>
 
       <div className="landing-cta">
-        <h2>Дүкөнүңүздү бүгүн эле санарипке өткөрүңүз</h2>
-        <p>Катталуу акысыз — карта талап кылынбайт.</p>
+        <h2>{t("landing.cta.title")}</h2>
+        <p>{t("landing.cta.subtitle")}</p>
         <div className="landing-cta-actions">
           <button className="btn btn-secondary btn-lg" onClick={() => navigate("/register")}>
-            <UserPlus size={18} /> Азыр катталуу
+            <UserPlus size={18} /> {t("landing.cta.button")}
           </button>
         </div>
       </div>
@@ -280,8 +200,8 @@ export default function Landing() {
       <footer className="landing-footer">
         <span>© {new Date().getFullYear()} Ainabi Business</span>
         <div className="landing-footer-contacts">
-          <Link to="/privacy" className="landing-footer-link">Купуялык саясаты</Link>
-          <Link to="/terms" className="landing-footer-link">Колдонуу шарттары</Link>
+          <Link to="/privacy" className="landing-footer-link">{t("landing.footer.privacy")}</Link>
+          <Link to="/terms" className="landing-footer-link">{t("landing.footer.terms")}</Link>
           <a href="https://instagram.com/ainabi.studio" target="_blank" rel="noopener noreferrer" className="landing-footer-link">
             <Instagram size={16} /> @ainabi.studio
           </a>
