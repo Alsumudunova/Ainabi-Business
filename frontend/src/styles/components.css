@@ -244,6 +244,74 @@
   color: var(--color-text-muted);
 }
 
+/* ---------- KPI card dropdown (clickable KpiCard) ---------- */
+.kpi-card-clickable {
+  cursor: pointer;
+}
+.kpi-card-expand-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.kpi-card-chevron {
+  transition: transform var(--transition-fast);
+}
+.kpi-card-chevron.open {
+  transform: rotate(180deg);
+}
+.kpi-dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0;
+  z-index: 30;
+}
+.kpi-dropdown-header {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+}
+.kpi-dropdown-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+.kpi-dropdown-row:last-child {
+  border-bottom: none;
+}
+.kpi-dropdown-row-name {
+  flex: 1;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kpi-dropdown-row-value {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.kpi-dropdown-empty {
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
 /* ---------- Filter bar ---------- */
 .filter-bar {
   display: flex;

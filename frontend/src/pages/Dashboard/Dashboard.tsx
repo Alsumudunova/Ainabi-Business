@@ -22,7 +22,8 @@ import { getGreeting } from "../../utils/greeting";
 import { formatMoney, formatNumber } from "../../utils/format";
 import { unitLabel } from "../../utils/format";
 import * as dashboardService from "../../services/dashboard.service";
-import type { DashboardRange, DashboardSummary, LowStockProduct, SalesDynamicsPoint, TopProduct } from "../../types";
+import * as productService from "../../services/product.service";
+import type { DashboardRange, DashboardSummary, LowStockProduct, Product, SalesDynamicsPoint, TopProduct } from "../../types";
 import "../../layouts/layout.css";
 
 export default function Dashboard() {
@@ -35,6 +36,17 @@ export default function Dashboard() {
   const [topProducts, setTopProducts] = useState<TopProduct[] | null>(null);
   const [lowStock, setLowStock] = useState<LowStockProduct[] | null>(null);
   const [loading, setLoading] = useState(true);
+  // Lazy-loaded only once the "Складдагы товар" KPI card is opened — no
+  // reason to fetch every product's exact quantity on every dashboard visit.
+  const [allProducts, setAllProducts] = useState<Product[] | null>(null);
+
+  function loadAllProducts() {
+    if (allProducts) return;
+    productService
+      .listProducts({ status: "ACTIVE", pageSize: 100 })
+      .then((res) => setAllProducts([...res.items].sort((a, b) => a.quantity - b.quantity)))
+      .catch(() => setAllProducts([]));
+  }
 
   const RANGE_OPTIONS: { value: DashboardRange; label: string }[] = [
     { value: "today", label: t("dashboard.range.today") },
@@ -90,9 +102,33 @@ export default function Dashboard() {
           <>
             <KpiCard index={0} label={t("dashboard.kpi.revenue")} value={formatMoney(summary.kpi.revenue.value)} changePercent={summary.kpi.revenue.changePercent} icon={Banknote} accent="primary" />
             <KpiCard index={1} label={t("dashboard.kpi.netProfit")} value={formatMoney(summary.kpi.netProfit.value)} changePercent={summary.kpi.netProfit.changePercent} icon={TrendingUp} accent="success" />
-            <KpiCard index={2} label={t("dashboard.kpi.salesCount")} value={formatNumber(summary.kpi.salesCount.value)} changePercent={summary.kpi.salesCount.changePercent} icon={ShoppingBag} accent="primary" />
-            <KpiCard index={3} label={t("dashboard.kpi.avgCheck")} value={formatMoney(summary.kpi.avgCheck.value)} changePercent={summary.kpi.avgCheck.changePercent} icon={Receipt} accent="primary" />
-            <KpiCard index={4} label={t("dashboard.kpi.stockQuantity")} value={t("dashboard.kpi.stockUnit", { count: formatNumber(summary.kpi.stockQuantity.value) })} icon={PackageSearch} accent="warning" />
+            <KpiCard
+              index={2}
+              label={t("dashboard.kpi.salesCount")}
+              value={formatNumber(summary.kpi.salesCount.value)}
+              changePercent={summary.kpi.salesCount.changePercent}
+              icon={ShoppingBag}
+              accent="primary"
+              dropdown={<TopProductsDropdown t={t} topProducts={topProducts} />}
+            />
+            <KpiCard
+              index={3}
+              label={t("dashboard.kpi.avgCheck")}
+              value={formatMoney(summary.kpi.avgCheck.value)}
+              changePercent={summary.kpi.avgCheck.changePercent}
+              icon={Receipt}
+              accent="primary"
+              dropdown={<TopProductsDropdown t={t} topProducts={topProducts} />}
+            />
+            <KpiCard
+              index={4}
+              label={t("dashboard.kpi.stockQuantity")}
+              value={t("dashboard.kpi.stockUnit", { count: formatNumber(summary.kpi.stockQuantity.value) })}
+              icon={PackageSearch}
+              accent="warning"
+              onOpen={loadAllProducts}
+              dropdown={<StockDropdown t={t} products={allProducts} />}
+            />
             <KpiCard index={5} label={t("dashboard.kpi.totalDebt")} value={formatMoney(summary.kpi.totalDebt.value)} icon={Wallet} accent="danger" />
           </>
         )}
@@ -242,5 +278,57 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+type TFn = (key: string, options?: Record<string, unknown>) => string;
+
+/** "Складдагы товар" card's dropdown — exact remaining quantity for every
+ * active product, lowest stock first so the most urgent ones surface. */
+function StockDropdown({ t, products }: { t: TFn; products: Product[] | null }) {
+  return (
+    <>
+      <div className="kpi-dropdown-header">{t("dashboard.stockDropdown.title")}</div>
+      {products === null ? (
+        <div style={{ padding: "var(--space-3) var(--space-4)" }}>
+          <SkeletonRows rows={5} height={20} />
+        </div>
+      ) : products.length === 0 ? (
+        <div className="kpi-dropdown-empty">{t("dashboard.stockDropdown.empty")}</div>
+      ) : (
+        products.map((p) => (
+          <div className="kpi-dropdown-row" key={p.id}>
+            <span className="kpi-dropdown-row-name">{p.name}</span>
+            <span className="kpi-dropdown-row-value mono-num">
+              {formatNumber(p.quantity)} {unitLabel(p.unit)}
+            </span>
+          </div>
+        ))
+      )}
+    </>
+  );
+}
+
+/** Shared by "Сатуулар" and "Орточо чек" — which products actually drove
+ * those numbers, ranked by units sold (same data as the table below). */
+function TopProductsDropdown({ t, topProducts }: { t: TFn; topProducts: TopProduct[] | null }) {
+  return (
+    <>
+      <div className="kpi-dropdown-header">{t("dashboard.topProductsDropdown.title")}</div>
+      {topProducts === null ? (
+        <div style={{ padding: "var(--space-3) var(--space-4)" }}>
+          <SkeletonRows rows={5} height={20} />
+        </div>
+      ) : topProducts.length === 0 ? (
+        <div className="kpi-dropdown-empty">{t("dashboard.topProductsDropdown.empty")}</div>
+      ) : (
+        topProducts.map((p) => (
+          <div className="kpi-dropdown-row" key={p.productId}>
+            <span className="kpi-dropdown-row-name">{p.name}</span>
+            <span className="kpi-dropdown-row-value mono-num">{formatNumber(p.soldQuantity)}</span>
+          </div>
+        ))
+      )}
+    </>
   );
 }

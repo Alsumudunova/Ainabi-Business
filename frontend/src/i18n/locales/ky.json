@@ -22,6 +22,7 @@
     "paginationPrev": "Мурунку",
     "paginationNext": "Кийинки",
     "kpiTrendSuffix": "мурунку мезгилге салыштырмалуу",
+    "kpiDetails": "Толук тизме",
     "googleErrorTitle": "Google менен кирүү мүмкүн болбоду"
   },
   "labels": {
@@ -405,7 +406,9 @@
       "sold": "Сатылды",
       "revenue": "Киреше"
     },
-    "incomeExpense": { "title": "Киреше vs Чыгым", "subtitle": "Акыркы 7 күн", "income": "Киреше", "expense": "Чыгым" }
+    "incomeExpense": { "title": "Киреше vs Чыгым", "subtitle": "Акыркы 7 күн", "income": "Киреше", "expense": "Чыгым" },
+    "stockDropdown": { "title": "Ар бир товардын калдыгы", "empty": "Товар жок" },
+    "topProductsDropdown": { "title": "Эң көп сатылган товарлар", "empty": "Маалымат жок" }
   },
   "products": {
     "title": "Товарлар",

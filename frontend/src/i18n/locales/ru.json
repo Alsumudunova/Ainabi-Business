@@ -22,6 +22,7 @@
     "paginationPrev": "Назад",
     "paginationNext": "Вперёд",
     "kpiTrendSuffix": "по сравнению с прошлым периодом",
+    "kpiDetails": "Полный список",
     "googleErrorTitle": "Не удалось войти через Google"
   },
   "labels": {
@@ -405,7 +406,9 @@
       "sold": "Продано",
       "revenue": "Выручка"
     },
-    "incomeExpense": { "title": "Доход vs Расход", "subtitle": "Последние 7 дней", "income": "Доход", "expense": "Расход" }
+    "incomeExpense": { "title": "Доход vs Расход", "subtitle": "Последние 7 дней", "income": "Доход", "expense": "Расход" },
+    "stockDropdown": { "title": "Остаток по каждому товару", "empty": "Товаров нет" },
+    "topProductsDropdown": { "title": "Самые продаваемые товары", "empty": "Нет данных" }
   },
   "products": {
     "title": "Товары",
