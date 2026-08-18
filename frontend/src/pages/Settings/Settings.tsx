@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, Save, User } from "lucide-react";
+import { Globe, QrCode, Save, User } from "lucide-react";
 import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
@@ -10,10 +10,10 @@ import type { Business } from "../../types";
 
 export default function Settings() {
   const { t } = useTranslation();
-  const { session } = useAuth();
+  const { session, updateSessionBusiness } = useAuth();
   const { showToast } = useToast();
   const [business, setBusiness] = useState<Business | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", address: "", currency: "KGS" });
+  const [form, setForm] = useState({ name: "", phone: "", address: "", currency: "KGS", qrPaymentInfo: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function Settings() {
       .getBusiness()
       .then((b) => {
         setBusiness(b);
-        setForm({ name: b.name, phone: b.phone ?? "", address: b.address ?? "", currency: b.currency });
+        setForm({ name: b.name, phone: b.phone ?? "", address: b.address ?? "", currency: b.currency, qrPaymentInfo: b.qrPaymentInfo ?? "" });
       })
       .catch(() => undefined);
   }, []);
@@ -32,6 +32,7 @@ export default function Settings() {
     try {
       const updated = await settingsService.updateBusiness(form);
       setBusiness(updated);
+      updateSessionBusiness(updated);
       showToast({ variant: "success", title: t("settings.saved") });
     } catch (error) {
       showToast({ variant: "error", title: t("settings.saveFailed"), message: extractErrorMessage(error) });
@@ -74,6 +75,19 @@ export default function Settings() {
               <option value="KGS">{t("settings.currencyKGS")}</option>
               <option value="USD">{t("settings.currencyUSD")}</option>
             </select>
+          </div>
+          <div className="field">
+            <label className="field-label">
+              <QrCode size={13} style={{ marginRight: 4, verticalAlign: -2 }} />
+              {t("settings.qrPaymentInfo")}
+            </label>
+            <input
+              className="input"
+              placeholder={t("settings.qrPaymentInfoPlaceholder")}
+              value={form.qrPaymentInfo}
+              onChange={(e) => setForm((f) => ({ ...f, qrPaymentInfo: e.target.value }))}
+            />
+            <span className="field-hint">{t("settings.qrPaymentInfoHint")}</span>
           </div>
           <div>
             <button type="submit" className="btn btn-primary" disabled={saving || !business}>

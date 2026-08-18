@@ -62,13 +62,17 @@ model RefreshToken {
 }
 
 model Business {
-  id        String   @id @default(cuid())
-  name      String
-  ownerId   String
-  owner     User     @relation("BusinessOwner", fields: [ownerId], references: [id])
-  phone     String?
-  address   String?
-  currency  String   @default("KGS")
+  id            String   @id @default(cuid())
+  name          String
+  ownerId       String
+  owner         User     @relation("BusinessOwner", fields: [ownerId], references: [id])
+  phone         String?
+  address       String?
+  currency      String   @default("KGS")
+  // Freeform "how to pay us by QR" text (e.g. "MBank +996 700 123 456") —
+  // there's no single scannable payment-QR standard across KG banks, so
+  // this is shown to the cashier/customer as read text, not parsed.
+  qrPaymentInfo String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

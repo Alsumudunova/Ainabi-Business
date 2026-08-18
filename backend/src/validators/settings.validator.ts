@@ -5,6 +5,7 @@ export const updateBusinessSchema = z.object({
   phone: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   currency: z.string().min(1).default("KGS"),
+  qrPaymentInfo: z.string().optional().nullable(),
 });
 
 export type UpdateBusinessInput = z.infer<typeof updateBusinessSchema>;

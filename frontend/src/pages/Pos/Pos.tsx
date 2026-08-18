@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Banknote, CreditCard, Minus, Package, Plus, QrCode, ScanBarcode, Search, ShoppingCart, Trash2, Wallet } from "lucide-react";
 import { SkeletonRows } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import { useLabels } from "../../hooks/useLabels";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
@@ -12,6 +14,7 @@ import * as customerService from "../../services/customer.service";
 import * as saleService from "../../services/sale.service";
 import { extractErrorMessage } from "../../services/api";
 import { formatMoney } from "../../utils/format";
+import { buildPaymentQrText, generateQrDataUrl } from "../../utils/qr";
 import type { Category, Customer, PaymentMethod, Product } from "../../types";
 import "./Pos.css";
 
@@ -79,8 +82,52 @@ function CartQtyInput({
   );
 }
 
+/** Shown once "QR" is picked as the payment method — a QR code the customer
+ * scans with their own banking app, encoding the shop's payment details and
+ * the sale total (see utils/qr.ts for why this is read text, not an
+ * automated-payment QR). Regenerates whenever the amount or details change. */
+function QrPaymentPanel({ businessName, qrPaymentInfo, amount }: { businessName: string; qrPaymentInfo: string | null | undefined; amount: number }) {
+  const { t } = useTranslation();
+  const [qrImage, setQrImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!qrPaymentInfo) {
+      setQrImage(null);
+      return;
+    }
+    let cancelled = false;
+    generateQrDataUrl(buildPaymentQrText(businessName, qrPaymentInfo, formatMoney(amount))).then((dataUrl) => {
+      if (!cancelled) setQrImage(dataUrl);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [businessName, qrPaymentInfo, amount]);
+
+  if (!qrPaymentInfo) {
+    return (
+      <div className="pos-qr-panel pos-qr-panel-empty">
+        <QrCode size={20} />
+        <span>{t("pos.summary.qrNotConfigured")}</span>
+        <Link to="/settings" className="pos-qr-settings-link">
+          {t("pos.summary.qrGoToSettings")}
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pos-qr-panel">
+      {qrImage ? <img src={qrImage} alt="QR" width={140} height={140} /> : <div className="pos-qr-placeholder" />}
+      <span className="pos-qr-info">{qrPaymentInfo}</span>
+      <span className="pos-qr-hint">{t("pos.summary.qrScanHint")}</span>
+    </div>
+  );
+}
+
 export default function Pos() {
   const { t } = useTranslation();
+  const { session } = useAuth();
   const { showToast } = useToast();
   const labels = useLabels();
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -328,6 +375,10 @@ export default function Pos() {
               );
             })}
           </div>
+
+          {paymentMethod === "QR" && (
+            <QrPaymentPanel businessName={session?.business.name ?? ""} qrPaymentInfo={session?.business.qrPaymentInfo} amount={total} />
+          )}
 
           {paymentMethod === "DEBT" && (
             <select className="select" value={customerId} onChange={(e) => setCustomerId(e.target.value)}>

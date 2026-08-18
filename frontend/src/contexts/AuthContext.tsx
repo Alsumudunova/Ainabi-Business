@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Session } from "../types";
+import type { Business, Session } from "../types";
 import * as authService from "../services/auth.service";
 import { AUTH_LOGOUT_EVENT, tokenStore } from "../services/tokenStore";
 
@@ -10,6 +10,10 @@ interface AuthContextValue {
   loginWithGoogle: (idToken: string) => Promise<void>;
   register: (payload: authService.RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
+  /** Patches session.business in place — e.g. right after Settings saves an
+   * update, so other pages (POS's QR payment screen) see it without
+   * waiting for the next token refresh. */
+  updateSessionBusiness: (business: Business) => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -72,9 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authService.logout().catch(() => undefined);
   }, [clearSession]);
 
+  const updateSessionBusiness = useCallback((business: Business) => {
+    setSession((prev) => (prev ? { ...prev, business } : prev));
+  }, []);
+
   const value = useMemo(
-    () => ({ session, isLoading, login, loginWithGoogle, register, logout }),
-    [session, isLoading, login, loginWithGoogle, register, logout],
+    () => ({ session, isLoading, login, loginWithGoogle, register, logout, updateSessionBusiness }),
+    [session, isLoading, login, loginWithGoogle, register, logout, updateSessionBusiness],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

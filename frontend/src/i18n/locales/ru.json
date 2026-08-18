@@ -518,6 +518,9 @@
       "completing": "Завершение...",
       "selectCustomerTitle": "Выберите клиента",
       "selectCustomerMessage": "Выберите клиента для продажи в долг.",
+      "qrNotConfigured": "Данные для QR-оплаты не заполнены",
+      "qrGoToSettings": "Заполнить в Настройках →",
+      "qrScanHint": "Клиент сканирует своим банковским приложением и переводит на указанный номер",
       "saleSuccessTitle": "Продажа успешно завершена",
       "saleSuccessMessage": "Итого: {{total}}",
       "saleFailedTitle": "Продажа не завершена"
@@ -844,6 +847,9 @@
     "currency": "Валюта",
     "currencyKGS": "Сом (KGS)",
     "currencyUSD": "Доллар (USD)",
+    "qrPaymentInfo": "Данные для QR-оплаты",
+    "qrPaymentInfoPlaceholder": "Например: MBank +996 700 123 456",
+    "qrPaymentInfoHint": "При выборе способа оплаты «QR» на кассе покажется QR-код с этими данными — клиент отсканирует его своим банковским приложением и переведёт на указанный номер.",
     "profile": "Профиль",
     "language": "Язык",
     "languageHint": "Смена языка применяется сразу через кнопку KY/RU выше."

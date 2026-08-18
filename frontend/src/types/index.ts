@@ -26,6 +26,7 @@ export interface Business {
   currency: string;
   phone?: string | null;
   address?: string | null;
+  qrPaymentInfo?: string | null;
 }
 
 export interface Session {

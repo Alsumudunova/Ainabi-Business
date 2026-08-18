@@ -12,7 +12,7 @@ const googleClient = new OAuth2Client(env.google.clientId);
 function serializeSession(employee: {
   id: string;
   role: "OWNER" | "ADMIN" | "CASHIER";
-  business: { id: string; name: string; currency: string };
+  business: { id: string; name: string; currency: string; phone?: string | null; address?: string | null; qrPaymentInfo?: string | null };
   user: { id: string; name: string; email: string; phone: string | null; avatarUrl: string | null; provider: string };
 }) {
   return {
