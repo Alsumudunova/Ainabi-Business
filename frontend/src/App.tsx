@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { ToastStack } from "./components/ui/ToastStack";
@@ -25,6 +25,7 @@ const Expenses = lazy(() => import("./pages/Expenses/Expenses"));
 const Reports = lazy(() => import("./pages/Reports/Reports"));
 const Employees = lazy(() => import("./pages/Employees/Employees"));
 const Settings = lazy(() => import("./pages/Settings/Settings"));
+const Support = lazy(() => import("./pages/Support/Support"));
 const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 function PageFallback() {
@@ -64,7 +65,7 @@ export default function App() {
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/employees" element={<Employees />} />
                   <Route path="/settings" element={<Settings />} />
-                  <Route path="/support" element={<Navigate to="/settings" replace />} />
+                  <Route path="/support" element={<Support />} />
                 </Route>
               </Route>
 

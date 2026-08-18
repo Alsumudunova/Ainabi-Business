@@ -1,0 +1,51 @@
+.support-contacts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+}
+@media (max-width: 640px) {
+  .support-contacts {
+    grid-template-columns: 1fr;
+  }
+}
+.support-contact-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  text-decoration: none;
+  color: inherit;
+}
+.support-contact-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.support-contact-icon.whatsapp {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+.support-contact-icon.instagram {
+  background: linear-gradient(135deg, #fce18a, #ff6b6b 40%, #a044ff 80%);
+  color: #fff;
+}
+.support-contact-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.support-contact-label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+.support-contact-value {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
