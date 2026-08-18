@@ -383,7 +383,7 @@
       "salesCount": "Продажи",
       "avgCheck": "Средний чек",
       "stockQuantity": "Товар на складе",
-      "stockUnit": "{{count}} шт.",
+      "stockUnit": "{{count}} кг",
       "totalDebt": "Долги"
     },
     "salesDynamics": { "title": "Динамика продаж", "subtitle": "Продажи за последние 7 дней", "seriesName": "Продажи" },

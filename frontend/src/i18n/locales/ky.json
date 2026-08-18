@@ -383,7 +383,7 @@
       "salesCount": "Сатуулар",
       "avgCheck": "Орточо чек",
       "stockQuantity": "Складдагы товар",
-      "stockUnit": "{{count}} даана",
+      "stockUnit": "{{count}} кг",
       "totalDebt": "Карыздар"
     },
     "salesDynamics": { "title": "Сатуу динамикасы", "subtitle": "Акыркы 7 күн ичиндеги сатуулар", "seriesName": "Сатуу" },
