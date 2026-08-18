@@ -2,7 +2,33 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { ApiError } from "../utils/ApiError";
 import { toNumber } from "../utils/money";
+import { generateBarcodeFromSku } from "../utils/barcode";
 import { ProductInput, ProductQuery } from "../validators/product.validator";
+
+/** Assigns the next "SKU-0007"-style number for a business when the owner
+ * leaves the SKU field blank — counting includes archived products so a
+ * deleted item's number is never reused. */
+async function generateSku(businessId: string): Promise<string> {
+  const count = await prisma.product.count({ where: { businessId } });
+  for (let attempt = count + 1; attempt < count + 21; attempt++) {
+    const candidate = `SKU-${String(attempt).padStart(4, "0")}`;
+    const exists = await prisma.product.findFirst({ where: { businessId, sku: candidate } });
+    if (!exists) return candidate;
+  }
+  return `SKU-${Date.now()}`;
+}
+
+/** Same idea for the barcode, only reached when both SKU and barcode were
+ * left blank (the frontend already derives+sends a barcode itself whenever
+ * the owner typed an SKU by hand — see frontend/src/utils/barcode.ts). */
+async function ensureUniqueBarcode(businessId: string, sku: string): Promise<string> {
+  for (let salt = 0; salt < 20; salt++) {
+    const candidate = generateBarcodeFromSku(sku, salt ? String(salt) : "");
+    const exists = await prisma.product.findFirst({ where: { businessId, barcode: candidate } });
+    if (!exists) return candidate;
+  }
+  return generateBarcodeFromSku(sku, String(Date.now()));
+}
 
 function serializeProduct(product: Prisma.ProductGetPayload<{ include: { category: true } }>) {
   const purchasePrice = toNumber(product.purchasePrice);
@@ -101,13 +127,16 @@ export async function createProduct(businessId: string, input: ProductInput) {
     if (exists) throw ApiError.conflict("Бул штрих-код менен товар мурунтан бар.");
   }
 
+  const sku = input.sku || (await generateSku(businessId));
+  const barcode = input.barcode || (await ensureUniqueBarcode(businessId, sku));
+
   const product = await prisma.product.create({
     data: {
       businessId,
       name: input.name,
       categoryId: input.categoryId || null,
-      sku: input.sku || null,
-      barcode: input.barcode || null,
+      sku,
+      barcode,
       purchasePrice: input.purchasePrice,
       salePrice: input.salePrice,
       quantity: input.quantity,

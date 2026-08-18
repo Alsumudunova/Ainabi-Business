@@ -1,13 +1,20 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
+import { Image as ImageIcon, Link2, Loader2, Trash2, Upload } from "lucide-react";
 import { Drawer } from "../../components/ui/Drawer";
 import type { Category, Product, ProductUnit } from "../../types";
 import { formatMoney } from "../../utils/format";
 import { generateBarcodeFromSku } from "../../utils/barcode";
+import { resizeImageToDataUrl } from "../../utils/image";
+import { useToast } from "../../hooks/useToast";
 import "./Products.css";
+
+// A generous cap on the *original* file — it gets resized/compressed well
+// below this before ever touching the imageUrl field or the network.
+const MAX_IMAGE_FILE_BYTES = 12 * 1024 * 1024;
 
 interface ProductDrawerProps {
   open: boolean;
@@ -34,6 +41,10 @@ export interface ProductFormValues {
 
 export function ProductDrawer({ open, onClose, onSubmit, categories, product, submitting }: ProductDrawerProps) {
   const { t } = useTranslation();
+  const { showToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [imageProcessing, setImageProcessing] = useState(false);
 
   const schema = useMemo(
     () =>
@@ -83,6 +94,10 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
   useEffect(() => {
     if (open) {
       lastAutoBarcode.current = undefined;
+      // A previously-uploaded image is stored as a data: URL, which isn't
+      // something a person would want to see/edit as text — only reveal the
+      // manual-URL field by default when the existing value is a real link.
+      setShowUrlInput(!!product?.imageUrl && !product.imageUrl.startsWith("data:"));
       reset(
         product
           ? {
@@ -103,7 +118,29 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
     }
   }, [open, product, reset]);
 
-  const [purchasePrice, salePrice, skuValue, barcodeValue] = watch(["purchasePrice", "salePrice", "sku", "barcode"]);
+  const [purchasePrice, salePrice, skuValue, barcodeValue, imageUrlValue] = watch(["purchasePrice", "salePrice", "sku", "barcode", "imageUrl"]);
+
+  async function handleImageFile(file: File | undefined) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      showToast({ variant: "error", title: t("products.drawer.imageInvalidType") });
+      return;
+    }
+    if (file.size > MAX_IMAGE_FILE_BYTES) {
+      showToast({ variant: "error", title: t("products.drawer.imageTooLarge") });
+      return;
+    }
+    setImageProcessing(true);
+    try {
+      const dataUrl = await resizeImageToDataUrl(file);
+      setValue("imageUrl", dataUrl, { shouldDirty: true });
+    } catch {
+      showToast({ variant: "error", title: t("products.drawer.imageProcessFailed") });
+    } finally {
+      setImageProcessing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
   const profit = (Number(salePrice) || 0) - (Number(purchasePrice) || 0);
   const margin = Number(purchasePrice) > 0 ? Math.round((profit / Number(purchasePrice)) * 1000) / 10 : 0;
 
@@ -169,6 +206,7 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
           <div className="field">
             <label className="field-label">{t("products.drawer.sku")}</label>
             <input className="input" placeholder="SKU-0001" {...register("sku")} />
+            {!skuValue && !product && <span className="field-hint">{t("products.drawer.skuAutoHint")}</span>}
           </div>
           <div className="field">
             <label className="field-label">{t("products.drawer.barcode")}</label>
@@ -216,8 +254,58 @@ export function ProductDrawer({ open, onClose, onSubmit, categories, product, su
         </div>
 
         <div className="field">
-          <label className="field-label">{t("products.drawer.imageUrl")}</label>
-          <input className="input" placeholder="https://..." {...register("imageUrl")} />
+          <label className="field-label">{t("products.drawer.image")}</label>
+          <div className="product-image-field">
+            <div className="product-image-preview">
+              {imageProcessing ? (
+                <Loader2 size={22} className="spin" />
+              ) : imageUrlValue ? (
+                <img src={imageUrlValue} alt="" />
+              ) : (
+                <ImageIcon size={22} />
+              )}
+            </div>
+            <div className="product-image-actions">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => handleImageFile(e.target.files?.[0])}
+              />
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => fileInputRef.current?.click()} disabled={imageProcessing}>
+                <Upload size={14} /> {t("products.drawer.imageUpload")}
+              </button>
+              <div className="row gap-3">
+                {imageUrlValue && (
+                  <button
+                    type="button"
+                    className="product-image-link-btn"
+                    onClick={() => setValue("imageUrl", "", { shouldDirty: true })}
+                  >
+                    <Trash2 size={13} /> {t("products.drawer.imageRemove")}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="product-image-link-btn"
+                  onClick={() => {
+                    // A data: URL is a huge string — no point showing it in a
+                    // text box, so opening the manual-link field starts fresh.
+                    if (!showUrlInput && imageUrlValue?.startsWith("data:")) {
+                      setValue("imageUrl", "", { shouldDirty: true });
+                    }
+                    setShowUrlInput((v) => !v);
+                  }}
+                >
+                  <Link2 size={13} /> {t("products.drawer.imageUseUrl")}
+                </button>
+              </div>
+            </div>
+          </div>
+          {showUrlInput && (
+            <input className="input" style={{ marginTop: "var(--space-2)" }} placeholder="https://..." {...register("imageUrl")} />
+          )}
         </div>
 
         <div className="field">
