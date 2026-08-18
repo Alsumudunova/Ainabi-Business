@@ -28,6 +28,57 @@ const PAYMENT_ICONS: Record<PaymentMethod, typeof Banknote> = {
 };
 const PAYMENT_ORDER: PaymentMethod[] = ["CASH", "CARD", "QR", "DEBT"];
 
+/** The number between −/+ in the cart — typing directly beats clicking +
+ * fifty times for a bulk sale. Keeps its own draft text so a mid-edit empty
+ * field or a lone "0" doesn't yank the line out from under the cashier;
+ * the real quantity only commits on blur/Enter, clamped to what's in stock. */
+function CartQtyInput({
+  quantity,
+  max,
+  onCommit,
+  onExceedsStock,
+}: {
+  quantity: number;
+  max: number;
+  onCommit: (qty: number) => void;
+  onExceedsStock: (max: number) => void;
+}) {
+  const [text, setText] = useState(String(quantity));
+
+  useEffect(() => {
+    setText(String(quantity));
+  }, [quantity]);
+
+  function commit() {
+    const parsed = Math.floor(Number(text));
+    if (!text.trim() || Number.isNaN(parsed) || parsed <= 0) {
+      setText(String(quantity));
+      onCommit(0);
+      return;
+    }
+    if (parsed > max) onExceedsStock(max);
+    const clamped = Math.min(parsed, max);
+    setText(String(clamped));
+    if (clamped !== quantity) onCommit(clamped);
+  }
+
+  return (
+    <input
+      type="number"
+      className="pos-qty-input"
+      value={text}
+      min={1}
+      max={max}
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+      }}
+    />
+  );
+}
+
 export default function Pos() {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -99,6 +150,10 @@ export default function Pos() {
 
   function removeLine(productId: string) {
     setCart((prev) => prev.filter((line) => line.product.id !== productId));
+  }
+
+  function setLineQuantity(productId: string, quantity: number) {
+    setCart((prev) => prev.map((line) => (line.product.id === productId ? { ...line, quantity } : line)).filter((line) => line.quantity > 0));
   }
 
   async function handleBarcodeSubmit(e: React.FormEvent) {
@@ -180,6 +235,7 @@ export default function Pos() {
             {products.map((p) => (
               <button key={p.id} className="pos-product-card" onClick={() => addToCart(p)} disabled={p.quantity <= 0}>
                 <div className="pos-product-thumb">{p.imageUrl ? <img src={p.imageUrl} alt={p.name} /> : <Package size={22} />}</div>
+                {p.categoryName && <span className="pos-product-category">{p.categoryName}</span>}
                 <span className="pos-product-name">{p.name}</span>
                 <span className="pos-product-price">{formatMoney(p.salePrice)}</span>
                 <span className="pos-product-stock">{p.quantity > 0 ? `${p.quantity} ${t("pos.left")}` : t("pos.out")}</span>
@@ -218,7 +274,14 @@ export default function Pos() {
                   <button onClick={() => changeQuantity(line.product.id, -1)} aria-label={t("pos.cart.decrease")}>
                     <Minus size={13} />
                   </button>
-                  <span className="pos-qty-value">{line.quantity}</span>
+                  <CartQtyInput
+                    quantity={line.quantity}
+                    max={line.product.quantity}
+                    onCommit={(qty) => setLineQuantity(line.product.id, qty)}
+                    onExceedsStock={(maxQty) =>
+                      showToast({ variant: "error", title: t("pos.insufficientStockTitle"), message: t("pos.insufficientStockRemaining", { qty: maxQty }) })
+                    }
+                  />
                   <button onClick={() => changeQuantity(line.product.id, 1)} aria-label={t("pos.cart.increase")}>
                     <Plus size={13} />
                   </button>

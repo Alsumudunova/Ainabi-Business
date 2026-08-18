@@ -109,6 +109,21 @@
   height: 100%;
   object-fit: cover;
 }
+.pos-product-category {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-primary-700);
+  background: var(--color-primary-50);
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
 .pos-product-name {
   font-size: var(--font-size-sm);
   font-weight: 700;
@@ -197,6 +212,29 @@
   text-align: center;
   font-weight: 700;
   font-size: var(--font-size-sm);
+}
+.pos-qty-input {
+  width: 36px;
+  min-width: 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  padding: 0;
+  -moz-appearance: textfield;
+}
+.pos-qty-input::-webkit-outer-spin-button,
+.pos-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.pos-qty-input:focus {
+  outline: none;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-sm);
 }
 .pos-cart-item-total {
   font-weight: 700;
